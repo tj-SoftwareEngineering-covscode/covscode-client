@@ -35,25 +35,104 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "covscodeclient" is now active!');
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    const disposable = vscode.commands.registerCommand('covscodeclient.helloWorld', () => {
-        // The code you place here will be executed every time your command is executed
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from covscodeclient!');
-    });
-    context.subscriptions.push(disposable);
+const constant_1 = require("./constant");
+class Extension extends vscode.Disposable {
+    disposables = [];
+    //开始函数
+    start = async () => {
+        let userInput = await this.getUserInput();
+        if (userInput) {
+            console.log(userInput);
+        }
+        else {
+            console.log('停止输入');
+        }
+    };
+    constructor(statusBarItem) {
+        super(() => this.disposables.forEach(item => item.dispose()));
+        this.disposables.push(statusBarItem);
+        statusBarItem.show();
+    }
+    //提供文本框来获取用户输入数据
+    async getUserInput() {
+        //待返回的数据
+        let userInput = {
+            option: constant_1.StartOption.Other,
+            serverAddress: '',
+            userId: '',
+            repoId: ''
+        };
+        let options = [];
+        if (constant_1.currentStatus === constant_1.CurrentStatus.On) {
+            options = [constant_1.QuitOptionName];
+        }
+        else {
+            options = [constant_1.CreateOptionName, constant_1.JoinOptionName];
+        }
+        //获取操作选项
+        let selected = await vscode.window.showQuickPick(options);
+        switch (selected) {
+            case constant_1.CreateOptionName:
+                userInput.option = constant_1.StartOption.Create;
+                break;
+            case constant_1.JoinOptionName:
+                userInput.option = constant_1.StartOption.Join;
+                break;
+            case constant_1.QuitOptionName:
+                userInput.option = constant_1.StartOption.Quit;
+                return userInput;
+            default:
+                return;
+        }
+        ;
+        //获取服务器地址
+        const wsUrlRegex = /^(wss?:\/\/)([0-9]{1,3}(?:\.[0-9]{1,3}){3}|[a-zA-Z]+):([0-9]{1,5})$/;
+        let serverAddress = await vscode.window.showInputBox({
+            placeHolder: '请输入服务器地址',
+            value: 'ws://127.0.0.1:3000',
+            validateInput: value => (wsUrlRegex.test(value) ? undefined : '输入格式错误'),
+        });
+        if (serverAddress) {
+            userInput.serverAddress = serverAddress;
+        }
+        else {
+            return;
+        }
+        //获取用户ID
+        let userId = await vscode.window.showInputBox({
+            placeHolder: '请输入用户ID',
+        });
+        if (userId) {
+            userInput.userId = userId;
+        }
+        else {
+            return;
+        }
+        //获取仓库ID
+        let repoId = await vscode.window.showInputBox({
+            placeHolder: '请输入仓库ID',
+        });
+        if (repoId) {
+            userInput.repoId = repoId;
+        }
+        else {
+            return;
+        }
+        //返回获取的输入值
+        return userInput;
+    }
 }
-// This method is called when your extension is deactivated
+//插件起点函数
+function activate(context) {
+    //IDE底部启动插件的按钮
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    statusBarItem.text = 'covscode';
+    statusBarItem.command = 'covscodeclient.start';
+    //初始化插件
+    const extension = new Extension(statusBarItem);
+    context.subscriptions.push(extension);
+    context.subscriptions.push(vscode.commands.registerCommand("covscodeclient.start", extension.start));
+}
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

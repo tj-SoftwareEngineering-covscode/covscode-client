@@ -9,13 +9,17 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["*"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "covscodeclient.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "covscodeclient.start",
+        "title": "covscodeclient_start"
       }
     ]
   },

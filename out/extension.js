@@ -32,18 +32,29 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const constant_1 = require("./constant");
+const repoEditor_1 = require("./editor/repoEditor");
+const clientRepo_1 = require("./entity/clientRepo");
+const websocketConnection_1 = __importDefault(require("./connection/websocketConnection"));
 class Extension extends vscode.Disposable {
     disposables = [];
+    repoEditor;
+    clientRepo;
     //开始函数
     start = async () => {
         let userInput = await this.getUserInput();
         if (userInput) {
             console.log(userInput);
+            if (userInput.option === constant_1.StartOption.Create || userInput.option === constant_1.StartOption.Join) {
+                await this.connectRepo(userInput);
+            }
         }
         else {
             console.log('停止输入');
@@ -121,6 +132,14 @@ class Extension extends vscode.Disposable {
         }
         //返回获取的输入值
         return userInput;
+    }
+    async connectRepo(userInput) {
+        if (!await websocketConnection_1.default.checkWebSocketConnection(userInput.serverAddress)) {
+            return;
+        }
+        this.repoEditor = new repoEditor_1.RepoEditor();
+        this.clientRepo = new clientRepo_1.ClientRepo(userInput.serverAddress, this.repoEditor);
+        this.clientRepo.connectRepo(userInput.userId, userInput.repoId, userInput.option === constant_1.StartOption.Create);
     }
 }
 //插件起点函数

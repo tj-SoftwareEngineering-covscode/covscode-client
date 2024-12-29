@@ -1,6 +1,9 @@
 import { get } from 'http';
 import * as vscode from 'vscode';
 import { CreateOptionName, CurrentStatus, currentStatus, JoinOptionName, QuitOptionName, StartOption } from './constant';
+import { RepoEditor } from './editor/repoEditor';
+import { ClientRepo } from './entity/clientRepo';
+import WebSocketConnection from './connection/websocketConnection';
 
 //用户输入的数据结构
 type UserInput = {
@@ -12,12 +15,17 @@ type UserInput = {
 
 class Extension extends vscode.Disposable{
 	private disposables: vscode.Disposable[] = [];
+	private repoEditor?: RepoEditor;
+	private clientRepo?: ClientRepo;
 
 	//开始函数
 	start = async () => {
 		let userInput = await this.getUserInput();
 		if(userInput){
 			console.log(userInput);
+			if(userInput.option === StartOption.Create || userInput.option === StartOption.Join) {
+				await this.connectRepo(userInput);
+			}
 		}
 		else{
 			console.log('停止输入');
@@ -50,7 +58,7 @@ class Extension extends vscode.Disposable{
 
 		//获取操作选项
 		let selected=await vscode.window.showQuickPick(options);
-    switch(selected){
+    	switch(selected){
 			case CreateOptionName:
 				userInput.option=StartOption.Create;
 				break;
@@ -102,6 +110,15 @@ class Extension extends vscode.Disposable{
 
 		//返回获取的输入值
 		return userInput;
+	}
+
+	private async connectRepo(userInput:UserInput) {
+		if(!await WebSocketConnection.checkWebSocketConnection(userInput.serverAddress)) {
+			return;
+		}
+		this.repoEditor = new RepoEditor();
+		this.clientRepo = new ClientRepo(userInput.serverAddress, this.repoEditor);
+		this.clientRepo.connectRepo(userInput.userId, userInput.repoId, userInput.option === StartOption.Create);
 	}
 }
 

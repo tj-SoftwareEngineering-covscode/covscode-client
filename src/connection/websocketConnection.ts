@@ -1,8 +1,15 @@
 import { EventEmitter } from 'events';
 import { WebSocket, MessageEvent, ErrorEvent, CloseEvent } from 'ws';
 import * as vscode from 'vscode';
+import { TypedJSON } from 'typedjson';
+import { BaseAction } from '../action/baseAction';
+import { WebSocketMessage } from '../message/websocketMessage';
+import { SiteIdMessage } from '../message/siteIdMessage';
+import { ZippedDataMessage } from '../message/zippedDataMessage';
 
-export default class WebSocketConnection extends EventEmitter {
+export type MessageType=SiteIdMessage|ZippedDataMessage|WebSocketMessage;
+
+export class WebSocketConnection extends EventEmitter {
     private websocket!: WebSocket;
     private serverAddress: string;
     private websocketPath: string;
@@ -80,11 +87,26 @@ export default class WebSocketConnection extends EventEmitter {
     }
 
     //三种连接后的回调
-    private onMessage = (e: MessageEvent) => {
-        this.emit('message', e.data);
+    private onMessage = (me: MessageEvent) => {
+        const messageData = JSON.parse(me.data as string);
+        this.emit('message', messageData);
     };
     
-    private onError = (ev: ErrorEvent) => this.emit('error', ev);
+    private onError = (ee: ErrorEvent) => this.emit('error', ee);
     
-    private onClose = (ev: CloseEvent) => this.emit('close', ev);
+    private onClose = (ce: CloseEvent) => this.emit('close', ce);
+
+    //发送数据
+    public async sendData(data:Buffer|BaseAction){
+        if (this.readyState !== WebSocket.OPEN) {
+            this.emit('error','connection is NOT OPEN');
+            return;
+        }
+
+        if(data instanceof BaseAction){
+            this.websocket.send(JSON.stringify(new WebSocketMessage(data, true)));
+        }else{
+            this.websocket.send(data);
+        }
+    }
 }

@@ -3,10 +3,10 @@ import * as vscode from 'vscode';
 import { CreateOptionName, CurrentStatus, currentStatus, JoinOptionName, QuitOptionName, StartOption } from './constant';
 import { RepoEditor } from './editor/repoEditor';
 import { ClientRepo } from './entity/clientRepo';
-import WebSocketConnection from './connection/websocketConnection';
+import { WebSocketConnection } from './connection/websocketConnection';
 
 //用户输入的数据结构
-type UserInput = {
+export type UserInput = {
 	option:StartOption;
 	serverAddress:string;
 	userId:string;
@@ -117,8 +117,8 @@ class Extension extends vscode.Disposable{
 			return;
 		}
 		this.repoEditor = new RepoEditor();
-		this.clientRepo = new ClientRepo(userInput.serverAddress, this.repoEditor);
-		this.clientRepo.connectRepo(userInput.userId, userInput.repoId, userInput.option === StartOption.Create);
+		this.clientRepo = new ClientRepo(userInput, this.repoEditor);
+		this.clientRepo.connectRepo(userInput.option === StartOption.Create);
 	}
 }
 

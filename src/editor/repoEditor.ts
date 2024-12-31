@@ -1,42 +1,36 @@
-import {StatusBarItem, window} from 'vscode';
+import {StatusBarItem, window, ProgressLocation} from 'vscode';
 import  {ClientUser} from '../entity/clientUser';
 import  {StatusBarEditor} from './statusBarEditor';
-
-// 用于传递用户信息
-export interface UserInfo {
-    clientUser: ClientUser;
-    allUsers: ClientUser[];
-}
+import { PendingPromise } from '../util/pendingPromise';
 
 export class RepoEditor{
     private statusBarEditor: StatusBarEditor;
 
+    private progressPromise?: PendingPromise;
+    
     constructor(statusBarItem: StatusBarItem){
        this.statusBarEditor = new StatusBarEditor(statusBarItem);
     }
 
     // 开始初始化仓库
     startInitRepo(){
-
+        this.progressPromise = new PendingPromise();
+        window.withProgress(
+            { location: ProgressLocation.Notification, title: 'Initializing repository, please wait' },
+            () => this.progressPromise!.promise
+          );
     }
 
     // 完成初始化仓库
-    finishInitRepo(userInfo: UserInfo){
-
+    finishInitRepo(user: ClientUser, allUsers: ClientUser[]){
+        this.progressPromise?.resolve();
         // 初始化状态栏
-        this.statusBarEditor.initStatusBar(userInfo);
+        this.statusBarEditor.initStatusBar(user, allUsers);
     }
 
-    // 开始加入仓库
-    startJoinRepo(){
-
-    }
-
-    // 完成加入仓库
-    finishJoinRepo(userInfo: UserInfo){
-
-        // 初始化状态栏
-        this.statusBarEditor.initStatusBar(userInfo);
+    // 测试连接后清空Progress
+    cleanProgress(){
+        this.progressPromise?.resolve();
     }
 
     // 新用户加入仓库
@@ -55,6 +49,4 @@ export class RepoEditor{
         this.statusBarEditor.updateStatusBar(allUsers);
     }
 
-    
-    
 } 

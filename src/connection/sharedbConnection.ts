@@ -3,6 +3,9 @@ import { Socket } from 'sharedb/lib/sharedb';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import { WebSocket } from 'ws';
 import { EventEmitter } from 'events';
+import { ClientFile } from '../entity/clientFile';
+import { FileOpenAction } from '../action/file/fileOpenAction';
+import { DocManager } from '../manager/docManager';
 
 export class SharedbConnection extends EventEmitter{
     private reconnectingWebSocket!:ReconnectingWebSocket;
@@ -46,5 +49,57 @@ export class SharedbConnection extends EventEmitter{
             });
         });
         await this.connectingPromise;
+    }
+
+    public async createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
+        let doc = this.sharedb.get(clientFile.getClientRepo().getRepoId()!, fileOpenAction.getPath()!);
+        doc.fetch((err) => {
+            if (err) {
+                console.error("获取文档失败:", err);
+            } else {
+                if (doc.type === null) {
+                    doc.create({ content: clientFile.getContent() }, (err) => {
+                        if (err) {
+                            console.error("创建文档失败:", err);
+                        } else {
+                            console.log("文档已创建");
+                        }
+                    });
+                } else {
+                    console.log("文档已存在");
+                }
+            }
+        });
+
+        doc.subscribe(async (err) => {
+            if (err) {
+              throw err;
+            }
+            const docContent = doc.data.content;
+            await clientFile.onWrite(docContent);
+        });
+
+        doc.on("op batch", async (op, source) => {
+            let docInstance = DocManager.getDoc(clientFile);
+      
+            if (source == clientFile.getClientRepo().getUserId()) {
+                console.log("收到op", op);
+                console.log("doc 内容为", doc.data.content);
+                const newContent = doc.data.content;
+                DocManager.setLastVersion(doc);
+                if (newContent !== clientFile.getFileContent()) {
+                    clientFile.setVersionMap(DocManager.getLastVersion(doc)!, false);
+                    await clientFile.onWrite(newContent);
+                    console.log("已同步一个内容编辑操作，时间为", new Date().getTime());
+                }
+            } else {
+                if (doc.data.content !== clientFile.getFileContent()) {
+                    await clientFile.onWrite(doc.data.content);
+                    console.log("已同步一个内容编辑操作，时间为", new Date().getTime());
+                }
+            }
+        });
+      
+        return doc;
     }
 }

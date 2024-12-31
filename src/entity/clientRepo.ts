@@ -28,6 +28,14 @@ export class ClientRepo{
         return this.websocketConnection.readyState;
     }
 
+    public getRepoId(){
+        return this.user.getRepoId();
+    }
+
+    public getUserId(){
+        return this.user.getUserId();
+    }
+
     public async connectRepo(isNew:boolean){
         if(isNew){
             this.initRepo();
@@ -38,7 +46,6 @@ export class ClientRepo{
 
     private async connect(){
         await this.websocketConnection.connect();
-        await this.websocketConnection.sendData(new SiteIdMessage(this.user.getUserId()));
     }
 
     public async closeRepo(){

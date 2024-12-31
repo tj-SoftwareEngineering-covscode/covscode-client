@@ -23,6 +23,30 @@ export class ClientFile{
         this.isFreshing = false;
     }
 
+    public getClientRepo(){
+        return this.clientRepo;
+    }
+
+    public getContent(){
+        return this.content;
+    }
+
+    public getFileContent(){
+        //待补全
+    }
+
+    public getRelativePath(){
+        //待补全
+    }
+
+    public setVersionMap(version:number, isFromLocal:boolean){
+        this.versionMap.set(version, isFromLocal);
+    }
+
+    public async onWrite(newContent:string){
+        //待补全
+    }
+
     public async excute(action:BaseAction){
         await this.mutex.runExclusive(async()=>{
             await this.classifyAction(action);

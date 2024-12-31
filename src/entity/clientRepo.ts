@@ -6,6 +6,7 @@ import { UserInput } from '../extension';
 import { SessionInitAction } from '../action/session/sessionInitAction';
 import { SessionJoinAction } from '../action/session/sessionJoinAction';
 import { BaseMessage } from '../message/baseMessage';
+import { SiteIdMessage } from '../message/siteIdMessage';
 
 export class ClientRepo{
     private serverAddress: string;
@@ -36,7 +37,12 @@ export class ClientRepo{
     }
 
     private async connect(){
-        this.websocketConnection.connect();
+        await this.websocketConnection.connect();
+        await this.websocketConnection.sendData(new SiteIdMessage(this.user.getUserId()));
+    }
+
+    public async closeRepo(){
+        await this.websocketConnection.close();
     }
 
     //新建仓库的操作

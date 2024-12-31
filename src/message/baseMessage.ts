@@ -1,4 +1,4 @@
-enum MessageType{
+export enum MessageType{
     SiteIdMessage='SiteIdMessage',
     WebSocketMessage='WebSocketMessage',
     ZippedDataMessage='ZippedDataMessage'

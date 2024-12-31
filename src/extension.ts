@@ -26,6 +26,9 @@ class Extension extends vscode.Disposable{
 			if(userInput.option === StartOption.Create || userInput.option === StartOption.Join) {
 				await this.connectRepo(userInput);
 			}
+			else{
+				await this.leaveRepo();
+			}
 		}
 		else{
 			console.log('停止输入');
@@ -128,6 +131,12 @@ class Extension extends vscode.Disposable{
 		this.repoEditor = new RepoEditor(this.statusBarItem);
 		this.clientRepo = new ClientRepo(userInput, this.repoEditor);
 		this.clientRepo.connectRepo(userInput.option === StartOption.Create);
+	}
+
+	private async leaveRepo(){
+		await this.clientRepo?.closeRepo();
+		this.clientRepo = undefined;
+		this.repoEditor = undefined;
 	}
 }
 

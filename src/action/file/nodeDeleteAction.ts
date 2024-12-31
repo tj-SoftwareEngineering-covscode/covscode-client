@@ -1,4 +1,4 @@
-import { BaseAction } from '../baseAction';
+import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class NodeDeleteAction extends BaseAction{
@@ -7,7 +7,7 @@ export class NodeDeleteAction extends BaseAction{
     private isFile?:boolean;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string, isFile?:boolean){
-        super(clientUser);
+        super(ActionType.NodeDeleteAction, clientUser);
         this.path = path;
         this.name = name;
         this.isFile = isFile;

@@ -3,15 +3,17 @@ import { WebSocket, MessageEvent, ErrorEvent, CloseEvent } from 'ws';
 import * as vscode from 'vscode';
 import { BaseAction } from '../action/baseAction';
 import { WebSocketMessage } from '../message/websocketMessage';
+import { BaseMessage } from '../message/baseMessage';
 
 export class WebSocketConnection extends EventEmitter {
     private websocket!: WebSocket;
     private serverAddress: string;
     private websocketPath: string;
     private connectingPromise?: Promise<void>;
+    private closePromise?: Promise<void>;
 
     get readyState(){
-        return this.websocket.readyState ?? WebSocket.CLOSED;
+        return this.websocket?.readyState ?? WebSocket.CLOSED;
     }
 
     constructor(serverAddress: string, websocketPath: string) {
@@ -82,6 +84,27 @@ export class WebSocketConnection extends EventEmitter {
         await this.connectingPromise;
     }
 
+    //关闭连接
+    public async close(){
+        if(this.readyState === WebSocket.CLOSED){
+            return;
+        }
+        if(this.readyState === WebSocket.CLOSING){
+            await this.closePromise;
+            return;
+        }
+        if(this.readyState === WebSocket.CONNECTING){
+            return;
+        }
+
+        this.closePromise = new Promise<void>((res, rej) => {
+            this.websocket.close();
+            this.websocket.removeAllListeners();
+            this.closePromise = undefined;
+        });
+        await this.closePromise;
+    }
+
     //三种连接后的回调
     private onMessage = (me: MessageEvent) => {
         const messageData = JSON.parse(me.data as string);
@@ -93,7 +116,7 @@ export class WebSocketConnection extends EventEmitter {
     private onClose = (ce: CloseEvent) => this.emit('close', ce);
 
     //发送数据
-    public async sendData(data:Buffer|BaseAction){
+    public async sendData(data:Buffer|BaseAction|BaseMessage){
         if (this.readyState !== WebSocket.OPEN) {
             this.emit('error','connection is NOT OPEN');
             return;
@@ -101,6 +124,8 @@ export class WebSocketConnection extends EventEmitter {
 
         if(data instanceof BaseAction){
             this.websocket.send(JSON.stringify(new WebSocketMessage(data, true)));
+        }else if(data instanceof BaseMessage){
+            this.websocket.send(JSON.stringify(data));
         }else{
             this.websocket.send(data);
         }

@@ -1,4 +1,4 @@
-import { BaseAction } from '../baseAction';
+import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class FileOpenAction extends BaseAction{
@@ -6,7 +6,7 @@ export class FileOpenAction extends BaseAction{
     private name?:string;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string){
-        super(clientUser);
+        super(ActionType.FileOpenAction, clientUser);
         this.path = path;
         this.name = name;
     }

@@ -1,8 +1,8 @@
-import { BaseAction } from '../baseAction';
+import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class SessionJoinAction extends BaseAction{
     constructor(clientUser?:ClientUser){
-        super(clientUser);
+        super(ActionType.SessionJoinAction, clientUser);
     }
 }

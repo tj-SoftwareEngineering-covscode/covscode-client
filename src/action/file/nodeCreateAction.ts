@@ -1,4 +1,4 @@
-import { BaseAction } from '../baseAction';
+import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class NodeCreateAction extends BaseAction{
@@ -8,7 +8,7 @@ export class NodeCreateAction extends BaseAction{
     private content?:string;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string, isFile?:boolean, content?:string){
-        super(clientUser);
+        super(ActionType.NodeCreateAction, clientUser);
         this.path = path;
         this.name = name;
         this.isFile = isFile;

@@ -1,7 +1,10 @@
-export class SiteIdMessage{
+import { BaseMessage, MessageType } from "./baseMessage";
+
+export class SiteIdMessage extends BaseMessage{
     private siteId?: string;
 
     constructor(siteId?: string){
+        super(MessageType.SiteIdMessage);
         this.siteId = siteId;
     }
 

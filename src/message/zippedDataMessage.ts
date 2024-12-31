@@ -1,11 +1,13 @@
 import { ClientUser } from "../entity/clientUser";
+import { BaseMessage, MessageType } from "./baseMessage";
 
-export class ZippedDataMessage{
+export class ZippedDataMessage extends BaseMessage{
     private repoId?: string;
     private users?: ClientUser[];
     private data?: string;
 
     constructor(repoId: string, users: ClientUser[], data: string){
+        super(MessageType.ZippedDataMessage);
         this.repoId = repoId;
         this.users = users;
         this.data = data;

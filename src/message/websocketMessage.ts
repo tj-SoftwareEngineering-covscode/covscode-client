@@ -1,12 +1,14 @@
 import { BaseAction } from '../action/baseAction';
+import { BaseMessage, MessageType } from './baseMessage';
 
-export class WebSocketMessage{
+export class WebSocketMessage extends BaseMessage{
     private data:BaseAction;
     private isSuccessful:boolean;
     private errorMessage?:string;
     private errorCode?:string;
     
     constructor(data:BaseAction, isSuccessful:boolean, errorMessage?:string, errorCode?:string){
+        super(MessageType.WebSocketMessage);
         this.data = data;
         this.isSuccessful = isSuccessful;
         this.errorMessage = errorMessage;

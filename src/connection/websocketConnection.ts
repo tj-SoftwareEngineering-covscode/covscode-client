@@ -1,13 +1,8 @@
 import { EventEmitter } from 'events';
 import { WebSocket, MessageEvent, ErrorEvent, CloseEvent } from 'ws';
 import * as vscode from 'vscode';
-import { TypedJSON } from 'typedjson';
 import { BaseAction } from '../action/baseAction';
 import { WebSocketMessage } from '../message/websocketMessage';
-import { SiteIdMessage } from '../message/siteIdMessage';
-import { ZippedDataMessage } from '../message/zippedDataMessage';
-
-export type MessageType=SiteIdMessage|ZippedDataMessage|WebSocketMessage;
 
 export class WebSocketConnection extends EventEmitter {
     private websocket!: WebSocket;

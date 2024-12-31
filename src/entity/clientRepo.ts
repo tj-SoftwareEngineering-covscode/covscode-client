@@ -5,7 +5,7 @@ import { ClientUser } from './clientUser';
 import { UserInput } from '../extension';
 import { SessionInitAction } from '../action/session/sessionInitAction';
 import { SessionJoinAction } from '../action/session/sessionJoinAction';
-import { MessageType } from '../connection/websocketConnection';
+import { BaseMessage } from '../message/baseMessage';
 
 export class ClientRepo{
     private serverAddress: string;
@@ -54,7 +54,7 @@ export class ClientRepo{
         await this.websocketConnection.sendData(sessionJoinAction);
     }
 
-    private onMessage=async(message:MessageType)=>{
-
+    private onMessage=async(message:BaseMessage)=>{
+        //待补全
     }
 } 

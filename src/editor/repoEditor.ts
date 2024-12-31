@@ -1,17 +1,22 @@
 import {StatusBarItem, window, ProgressLocation} from 'vscode';
+import { relative, resolve } from 'path';
 import  {ClientUser} from '../entity/clientUser';
 import  {StatusBarEditor} from './statusBarEditor';
 import  {CursorEditor, UserCursorInfo} from './cursorEditor';
 import { PendingPromise } from '../util/pendingPromise';
+import { ZipUtil } from '../util/zipUtil';
 
 export class RepoEditor{
     private statusBarEditor: StatusBarEditor;
 
     private cursorEditor: CursorEditor;
 
+    private rootPath: string; // 根路径
+
     private progressPromise?: PendingPromise;
     
-    constructor(statusBarItem: StatusBarItem){
+    constructor(statusBarItem: StatusBarItem, rootPath: string){
+       this.rootPath = rootPath;
        this.statusBarEditor = new StatusBarEditor(statusBarItem);
        this.cursorEditor = new CursorEditor();
     }
@@ -61,5 +66,25 @@ export class RepoEditor{
     removeCursor(user: ClientUser){
         this.cursorEditor.removeCursorInfo(user);
         this.cursorEditor.updateCursorDecorators();
+    }
+
+    // 获取相对路径
+    getRelativePath(path: string) {
+        return relative(this.rootPath, path);
+    }
+
+    // 获取绝对路径
+    getAbsolutePath(relativePath: string) {
+        return resolve(this.rootPath, relativePath);
+    }
+
+    // 获取本地工作区解压数据
+    async getZipData() {
+        return await ZipUtil.zip(this.rootPath);
+    }
+
+    // 解压传过来的仓库数据
+    async unzipRepoData(data: Buffer) {
+        await ZipUtil.unzip(this.rootPath, data);
     }
 } 

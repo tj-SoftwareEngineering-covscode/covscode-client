@@ -1,7 +1,7 @@
 export class SiteIdMessage{
-    private siteId?: number;
+    private siteId?: string;
 
-    constructor(siteId?: number){
+    constructor(siteId?: string){
         this.siteId = siteId;
     }
 
@@ -9,7 +9,7 @@ export class SiteIdMessage{
         return this.siteId;
     }
 
-    public setSiteId(siteId: number){
+    public setSiteId(siteId: string){
         this.siteId = siteId;
     }
 }

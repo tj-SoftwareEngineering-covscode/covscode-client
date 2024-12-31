@@ -62,6 +62,7 @@ export class WebSocketConnection extends EventEmitter {
 
         this.connectingPromise = new Promise<void>((res, rej) => {
             this.websocket = new WebSocket(`${this.serverAddress}/${this.websocketPath}`);
+            console.log(`${this.serverAddress}/${this.websocketPath}`);
 
             this.websocket.addEventListener('error', ev => {
                 rej();

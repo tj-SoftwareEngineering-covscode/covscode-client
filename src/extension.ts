@@ -1,10 +1,9 @@
-import { get } from 'http';
 import * as vscode from 'vscode';
-import { CreateOptionName, CurrentStatus, currentStatus, JoinOptionName, QuitOptionName, StartOption } from './constant';
+import { CreateOptionName, JoinOptionName, QuitOptionName, StartOption } from './constant';
 import { RepoEditor } from './editor/repoEditor';
 import { ClientRepo } from './entity/clientRepo';
 import { WebSocketConnection } from './connection/websocketConnection';
-
+import { WebSocket } from 'ws';
 //用户输入的数据结构
 export type UserInput = {
 	option:StartOption;
@@ -17,6 +16,7 @@ class Extension extends vscode.Disposable{
 	private disposables: vscode.Disposable[] = [];
 	private repoEditor?: RepoEditor;
 	private clientRepo?: ClientRepo;
+	private statusBarItem!: vscode.StatusBarItem;
 
 	//开始函数
 	start = async () => {
@@ -32,9 +32,15 @@ class Extension extends vscode.Disposable{
 		}
 	};
 
+	get status(){
+		return this.clientRepo?.connectionStatus??WebSocket.CLOSED;
+	}
+
 	constructor(statusBarItem: vscode.StatusBarItem){
 		super(() => this.disposables.forEach(item => item.dispose()));
 		this.disposables.push(statusBarItem);
+		this.statusBarItem = statusBarItem;
+		this.statusBarItem && this.disposables.push(this.statusBarItem);
 		statusBarItem.show();
 	}
 
@@ -49,11 +55,14 @@ class Extension extends vscode.Disposable{
 		};
 
 		let options=[];
-		if(currentStatus===CurrentStatus.On){
+		if(this.status===WebSocket.OPEN){
 			options = [QuitOptionName];
 		}
-		else{
+		else if(this.status===WebSocket.CLOSED){
 			options = [CreateOptionName, JoinOptionName];
+		}
+		else{
+			return;
 		}
 
 		//获取操作选项
@@ -116,7 +125,7 @@ class Extension extends vscode.Disposable{
 		if(!await WebSocketConnection.checkWebSocketConnection(userInput.serverAddress)) {
 			return;
 		}
-		this.repoEditor = new RepoEditor();
+		this.repoEditor = new RepoEditor(this.statusBarItem);
 		this.clientRepo = new ClientRepo(userInput, this.repoEditor);
 		this.clientRepo.connectRepo(userInput.option === StartOption.Create);
 	}

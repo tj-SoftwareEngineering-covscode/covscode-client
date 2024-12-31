@@ -23,6 +23,10 @@ export class ClientRepo{
         this.user.setRepoId(userInput.repoId);
     } 
 
+    public get connectionStatus(){
+        return this.websocketConnection.readyState;
+    }
+
     public async connectRepo(isNew:boolean){
         if(isNew){
             this.initRepo();

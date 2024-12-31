@@ -1,5 +1,4 @@
 import { MarkdownString, StatusBarItem } from 'vscode';
-import {UserInfo} from './repoEditor';
 import  {ClientUser} from '../entity/clientUser';
 
 export class StatusBarEditor{
@@ -11,11 +10,12 @@ export class StatusBarEditor{
 
 
     // 初始化状态栏
-    initStatusBar(userInfo: UserInfo): void{
-        this.statusBarItem.text = `$RepoId: ${userInfo.clientUser.getRepoId()}, SiteId: ${userInfo.clientUser.getSiteId()}`;
-        this.statusBarItem.tooltip = this.getStatusBarTooltip(userInfo.allUsers);
+    initStatusBar(user: ClientUser, allUsers: ClientUser[]): void{
+        this.statusBarItem.text = `$RepoId: ${user.getRepoId()}, SiteId: ${user.getSiteId()}`;
+        this.statusBarItem.tooltip = this.getStatusBarTooltip(allUsers);
     }
 
+    // 更新状态栏
     updateStatusBar(allUsers: ClientUser[]): void{
         this.statusBarItem.tooltip = this.getStatusBarTooltip(allUsers);
     }

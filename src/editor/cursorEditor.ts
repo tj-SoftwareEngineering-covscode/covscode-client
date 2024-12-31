@@ -3,7 +3,7 @@ import  {ClientUser} from '../entity/clientUser';
 import { CURSOR_COLORS, DECORATION_STYLE } from '../constant';
 import assert from 'assert';
 
-interface UserCursorInfo {
+export interface UserCursorInfo {
     user: ClientUser;
     cursorPosition: {
       filePath: string;
@@ -11,7 +11,7 @@ interface UserCursorInfo {
     };
 }
 
-export default class CursorEditor {
+export class CursorEditor {
     private cursorDecoratorType : TextEditorDecorationType;
     private userCursorInfoList: UserCursorInfo[] = [];
 

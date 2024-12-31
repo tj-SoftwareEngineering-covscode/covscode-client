@@ -1,15 +1,19 @@
 import {StatusBarItem, window, ProgressLocation} from 'vscode';
 import  {ClientUser} from '../entity/clientUser';
 import  {StatusBarEditor} from './statusBarEditor';
+import  {CursorEditor, UserCursorInfo} from './cursorEditor';
 import { PendingPromise } from '../util/pendingPromise';
 
 export class RepoEditor{
     private statusBarEditor: StatusBarEditor;
 
+    private cursorEditor: CursorEditor;
+
     private progressPromise?: PendingPromise;
     
     constructor(statusBarItem: StatusBarItem){
        this.statusBarEditor = new StatusBarEditor(statusBarItem);
+       this.cursorEditor = new CursorEditor();
     }
 
     // 开始初始化仓库
@@ -24,7 +28,6 @@ export class RepoEditor{
     // 完成初始化仓库
     finishInitRepo(user: ClientUser, allUsers: ClientUser[]){
         this.progressPromise?.resolve();
-        // 初始化状态栏
         this.statusBarEditor.initStatusBar(user, allUsers);
     }
 
@@ -37,7 +40,6 @@ export class RepoEditor{
     userJoin(joinedUser: ClientUser, allUsers: ClientUser[]){
         const message = `${joinedUser.getUserId()} 加入了仓库`;
         window.showInformationMessage(message);
-        // 更新状态栏
         this.statusBarEditor.updateStatusBar(allUsers);
     }
 
@@ -45,8 +47,19 @@ export class RepoEditor{
     userLeave(leftUser: ClientUser, allUsers: ClientUser[]){
         const message = `${leftUser.getUserId()} 离开了仓库`;
         window.showInformationMessage(message);
-        // 更新状态栏
         this.statusBarEditor.updateStatusBar(allUsers);
     }
 
+    // 更新光标
+    updateCursor(docData: Object){
+        const data = docData as UserCursorInfo;
+        this.cursorEditor.updateCursorInfos(data.user, data.cursorPosition.filePath, data.cursorPosition.position);
+        this.cursorEditor.updateCursorDecorators();
+    }
+
+    // 移除光标
+    removeCursor(user: ClientUser){
+        this.cursorEditor.removeCursorInfo(user);
+        this.cursorEditor.updateCursorDecorators();
+    }
 } 

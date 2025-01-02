@@ -85,10 +85,8 @@ export class CursorEditor {
         const targetInfo = this.userCursorInfoList.find(info => info.user.getSiteId() === user.getSiteId() );
 
         if (targetInfo) {
-            // 如果找到光标信息，更新光标位置
             targetInfo.cursorPosition = { filePath, position };
         } else {
-            // 如果没有找到光标信息，插入新的光标信息
             this.userCursorInfoList.push({ user, cursorPosition: { filePath, position } });
         }
     }
@@ -96,14 +94,17 @@ export class CursorEditor {
     // 移除光标信息
     removeCursorInfo(user: ClientUser) {
         if (user.getSiteId()) {
-            // 查找光标信息在数组中的索引
             const index = this.userCursorInfoList.findIndex(info => info.user.getSiteId() === user.getSiteId() );
             
-            // 如果找到了对应的光标信息，移除它
             if (index !== -1) {
                 this.userCursorInfoList.splice(index, 1);
             }
         }
+    }
+
+    // 重置光标信息
+    resetCursorInfo(){
+        this.userCursorInfoList.splice(0, this.userCursorInfoList.length);
     }
 
 }

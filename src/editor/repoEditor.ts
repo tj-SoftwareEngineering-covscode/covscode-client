@@ -41,6 +41,13 @@ export class RepoEditor{
         this.progressPromise?.resolve();
     }
 
+    // 本地离开仓库
+    localLeave(){
+        this.statusBarEditor.resetStatusBar();
+        this.cursorEditor.resetCursorInfo();
+        this.updateCursorDecorators();
+    }
+
     // 新用户加入仓库
     userJoin(joinedUser: ClientUser, allUsers: ClientUser[]){
         const message = `${joinedUser.getUserId()} 加入了仓库`;
@@ -53,20 +60,26 @@ export class RepoEditor{
         const message = `${leftUser.getUserId()} 离开了仓库`;
         window.showInformationMessage(message);
         this.statusBarEditor.updateStatusBar(allUsers);
+        this.cursorEditor.removeCursorInfo(leftUser);
+        this.updateCursorDecorators();
     }
 
-    // 更新光标
+    // 本地移动光标,直接传入修改的光标信息
+    localMoveCursor(data: UserCursorInfo){
+        this.cursorEditor.updateCursorInfos(data.user, data.cursorPosition.filePath, data.cursorPosition.position);
+    }
+
+    // 其他用户更新光标
     updateCursor(docData: Object){
         const data = docData as UserCursorInfo;
         this.cursorEditor.updateCursorInfos(data.user, data.cursorPosition.filePath, data.cursorPosition.position);
+    }
+
+    // 更新光标装饰
+    updateCursorDecorators(){
         this.cursorEditor.updateCursorDecorators();
     }
 
-    // 移除光标
-    removeCursor(user: ClientUser){
-        this.cursorEditor.removeCursorInfo(user);
-        this.cursorEditor.updateCursorDecorators();
-    }
 
     // 获取相对路径
     getRelativePath(path: string) {

@@ -1,8 +1,9 @@
 import { Range, TextDocument, workspace, WorkspaceEdit } from 'vscode';
 import { readFile, writeFile } from 'fs/promises';
-import {RepoEditor} from './repoEditor';
+import { RepoEditor } from './repoEditor';
+import { basename } from 'path';
 
-export class FileEditor{
+export class FileEditor {
     relativePath: string;
     fileName: string;
     absolutePath: string;
@@ -10,20 +11,17 @@ export class FileEditor{
     textDocument: TextDocument | null;
     repoEditor: RepoEditor;
 
-    // constructor(repoEditor: RepoEditor, isOpened: boolean, textDocument: TextDocument);
-    // constructor(repoEditor: RepoEditor, isOpened: boolean, path: string);
-
     constructor(repoEditor: RepoEditor, isOpened: boolean, documentOrPath: TextDocument | string) {
-        if(isOpened){
+        if(isOpened) {
             this.textDocument = documentOrPath as TextDocument;
             this.relativePath = repoEditor.getRelativePath(this.textDocument.uri.fsPath);
             this.fileName = this.textDocument.fileName;
             this.absolutePath = this.textDocument.uri.fsPath;
-        }
-        else{
+        } 
+        else {
             this.textDocument = null;
             this.relativePath = documentOrPath as string;
-            this.fileName = ' '; //后续补充
+            this.fileName = basename(this.relativePath);
             this.absolutePath = repoEditor.getAbsolutePath(this.relativePath);
         }
         this.isOpened = isOpened;

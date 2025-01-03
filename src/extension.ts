@@ -128,13 +128,14 @@ class Extension extends vscode.Disposable{
 		if(!await WebSocketConnection.checkWebSocketConnection(userInput.serverAddress)) {
 			return;
 		}
-		this.repoEditor = new RepoEditor(this.statusBarItem);
+		this.repoEditor = new RepoEditor(this.statusBarItem,vscode.workspace.workspaceFolders![0].uri.fsPath);
 		this.clientRepo = new ClientRepo(userInput, this.repoEditor);
-		this.clientRepo.connectRepo(userInput.option === StartOption.Create);
+		await this.clientRepo.connectRepo(userInput.option === StartOption.Create);
 	}
 
 	private async leaveRepo(){
 		await this.clientRepo?.closeRepo();
+		//待补全
 		this.clientRepo = undefined;
 		this.repoEditor = undefined;
 	}
@@ -144,7 +145,7 @@ class Extension extends vscode.Disposable{
 export function activate(context: vscode.ExtensionContext) {
 	//IDE底部启动插件的按钮
 	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-	statusBarItem.text = 'covscode';
+	statusBarItem.text = '协同编程';
 	statusBarItem.command = 'covscodeclient.start';
 	
 	//初始化插件

@@ -16,10 +16,10 @@ export class WebSocketConnection extends EventEmitter {
         return this.websocket?.readyState ?? WebSocket.CLOSED;
     }
 
-    constructor(serverAddress: string, websocketPath: string) {
+    constructor(serverAddress: string) {
         super();
         this.serverAddress = serverAddress;
-        this.websocketPath = websocketPath;
+        this.websocketPath = 'websocket';
     }
 
     //测试连接
@@ -116,7 +116,7 @@ export class WebSocketConnection extends EventEmitter {
     private onClose = (ce: CloseEvent) => this.emit('close', ce);
 
     //发送数据
-    public async sendData(data:Buffer|BaseAction|BaseMessage){
+    public async sendData(data:BaseAction|BaseMessage){
         if (this.readyState !== WebSocket.OPEN) {
             this.emit('error','connection is NOT OPEN');
             return;
@@ -124,10 +124,8 @@ export class WebSocketConnection extends EventEmitter {
 
         if(data instanceof BaseAction){
             this.websocket.send(JSON.stringify(new WebSocketMessage(data, true)));
-        }else if(data instanceof BaseMessage){
-            this.websocket.send(JSON.stringify(data));
         }else{
-            this.websocket.send(data);
+            this.websocket.send(JSON.stringify(data));
         }
     }
 }

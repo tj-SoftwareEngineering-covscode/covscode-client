@@ -3,6 +3,8 @@ import { ClientRepo } from "./clientRepo";
 import { BaseAction } from "../action/baseAction";
 import { Mutex } from "async-mutex";
 import { TextDocumentChangeEvent } from "vscode";
+import { DocManager } from "../manager/docManager";
+import * as vscode from "vscode";
 
 export class ClientFile{
     private openUsers:Map<string,ClientUser>=new Map();
@@ -85,7 +87,66 @@ export class ClientFile{
         return deletion;
     }
 
-    public fileUpdate(textDocumentChangeEvent:TextDocumentChangeEvent){
-        //待补全
+    public async fileContentUpdate(textDocumentChangeEvent:TextDocumentChangeEvent){
+        await this.mutex.runExclusive(async () =>{
+            if(textDocumentChangeEvent.contentChanges.length===0){
+                return;
+            }
+            
+            let doc=DocManager.getDoc(this);
+
+            if (this.getFileContent() === doc?.data.content) {
+                this.content=textDocumentChangeEvent.document.getText(); // 更新内部内容
+                return;
+            }
+
+            let op: { p: [string, number]; sd?: string; si?: string }[] = []; // 操作列表
+            textDocumentChangeEvent.contentChanges.forEach((change) => {
+                var changeText = change.text; // 变化文本
+                var offset = change.rangeOffset; // 偏移量
+        
+                //表示为删除操作
+                if (changeText === "") {
+                    var oldText = this.content;
+                    var deletedPart = oldText.substring(
+                        offset,
+                        offset + change.rangeLength
+                    );
+                    op.push({ p: ["content", offset], sd: deletedPart }); // 添加删除操作
+                } else {
+                    //表示为插入操作
+                    if (change.rangeLength === 0) {
+                        const editor = vscode.window.activeTextEditor;
+                        let position;
+                        if (editor) {
+                            position = editor.selection.active;
+                        }
+                        offset = textDocumentChangeEvent.document.offsetAt(position!);
+                        op.push({ p: ["content", offset], si: changeText });
+                    } 
+                    //表示为替换操作
+                    else {
+                        var previousText = this.content.substring(
+                            offset,
+                            offset + change.rangeLength
+                        );
+                        op.push({ p: ["content", offset], sd: previousText });
+                        op.push({ p: ["content", offset], si: changeText });
+                    }
+                }
+            });
+
+            this.content=textDocumentChangeEvent.document.getText();
+
+            let setVersion = () => {
+                this.setVersionMap(doc?.version!, true); // 设置版本映射
+            };
+
+            if (this.getFileContent() !== doc?.data.content && !this.isFreshing) {
+                doc?.submitOp(op, { source: this.clientRepo.getUserId() }, setVersion); // 提交操作，并设置 source 参数为当前用户的ID
+            } else {
+                this.isFreshing = false; // 重置刷新标志
+            }
+        })
     }
 }

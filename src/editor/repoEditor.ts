@@ -1,8 +1,9 @@
-import {StatusBarItem, window, ProgressLocation} from 'vscode';
+import {StatusBarItem, window, ProgressLocation, TextDocument} from 'vscode';
 import { relative, resolve, dirname, join } from 'path';
 import  {ClientUser} from '../entity/clientUser';
 import  {StatusBarEditor} from './statusBarEditor';
 import  {CursorEditor, UserCursorInfo} from './cursorEditor';
+import { FileEditor } from './fileEditor';
 import { PendingPromise } from '../util/pendingPromise';
 import { ZipUtil } from '../util/zipUtil';
 import * as fs from 'fs/promises';
@@ -161,5 +162,14 @@ export class RepoEditor{
     fileClose(path: string, user: ClientUser){
         window.showInformationMessage(`${user.getUserId()} 关闭了 ${path} 文件`);
     }
-
+    
+    // 创建FileEditor
+    createFileEditor(isOpened: boolean, documentOrPath: TextDocument | string){
+        if(isOpened){
+            return new FileEditor(this, isOpened, documentOrPath as TextDocument);
+        }
+        else{
+            return new FileEditor(this, isOpened, documentOrPath as string);
+        } 
+    }
 } 

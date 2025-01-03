@@ -1,10 +1,11 @@
 import {StatusBarItem, window, ProgressLocation} from 'vscode';
-import { relative, resolve } from 'path';
+import { relative, resolve, dirname, join } from 'path';
 import  {ClientUser} from '../entity/clientUser';
 import  {StatusBarEditor} from './statusBarEditor';
 import  {CursorEditor, UserCursorInfo} from './cursorEditor';
 import { PendingPromise } from '../util/pendingPromise';
 import { ZipUtil } from '../util/zipUtil';
+import * as fs from 'fs/promises';
 
 export class RepoEditor{
     private statusBarEditor: StatusBarEditor;
@@ -100,4 +101,65 @@ export class RepoEditor{
     async unzipRepoData(data: Buffer) {
         await ZipUtil.unzip(this.rootPath, data);
     }
+
+    // 创建节点
+    async nodeCreate(filePath: string, user: ClientUser, isFile: boolean) {
+        const absolutePath = this.getAbsolutePath(filePath);
+        try {
+            if (!isFile) {
+                await fs.mkdir(absolutePath, { recursive: true });
+            }
+            else {
+                // 确保父目录存在
+                await fs.mkdir(dirname(absolutePath), { recursive: true });
+                await fs.writeFile(absolutePath, '');
+            }
+            window.showInformationMessage(`${user.getUserId()} 创建了 ${isFile ? '文件' : '文件夹'}: ${filePath}`);
+        } catch (error: any) {
+            window.showErrorMessage(`创建${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
+        }
+    }
+
+    // 删除节点
+    async nodeDelete(path: string, user: ClientUser, isFile: boolean) {
+        const absolutePath = this.getAbsolutePath(path);
+        try {
+            if (isFile) {
+                await fs.unlink(absolutePath);
+            } else {
+                await fs.rm(absolutePath, { recursive: true, force: true });
+            }
+            window.showInformationMessage(`${user.getUserId()} 删除了 ${isFile ? '文件' : '文件夹'}: ${path}`);
+        } catch (error: any) {
+            window.showErrorMessage(`删除${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
+        }
+    }
+
+    // 重命名节点
+    async nodeRename(oldPath: string, newName: string, user: ClientUser, isFile: boolean) {
+        const absoluteOldPath = this.getAbsolutePath(oldPath);
+        const parentDir = dirname(oldPath);
+        const absoluteNewPath = join(parentDir, newName);
+        
+        try {
+            await fs.mkdir(dirname(absoluteNewPath), { recursive: true });
+            await fs.rename(absoluteOldPath, absoluteNewPath);
+            window.showInformationMessage(
+                `${user.getUserId()} 将 ${isFile ? '文件' : '文件夹'} 从 ${oldPath} 重命名为 ${newName}`
+            );
+        } catch (error: any) {
+            window.showErrorMessage(`重命名${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
+        }
+    }
+
+    // 打开文件
+    fileOpen(path: string, user: ClientUser){
+        window.showInformationMessage(`${user.getUserId()} 打开了 ${path} 文件`);
+    }
+
+    // 关闭文件
+    fileClose(path: string, user: ClientUser){
+        window.showInformationMessage(`${user.getUserId()} 关闭了 ${path} 文件`);
+    }
+
 } 

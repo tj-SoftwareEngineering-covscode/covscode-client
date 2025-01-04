@@ -49,6 +49,14 @@ export class ClientRepo{
         return this.user.getUserId();
     }
 
+    public getUser(){
+        return this.user;
+    }
+
+    public getWebsocketConnection(){
+        return this.websocketConnection;
+    }
+
     private setWebsocketListeners(){
         this.websocketConnection.on('message', this.onMessage);
         this.websocketConnection.on('error', this.onError);

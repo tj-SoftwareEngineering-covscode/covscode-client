@@ -84,6 +84,7 @@ export class ClientRepo{
 
     //新建仓库的操作
     private async initRepo(){
+        this.repoEditor.startInitRepo();
         this.users.push(this.user);
         await this.connect();
         const data=await this.repoEditor.getZipData();
@@ -94,6 +95,7 @@ export class ClientRepo{
 
     //加入仓库的操作
     private async joinRepo(){
+        this.repoEditor.startInitRepo();
         await this.connect();
         this.zippedDataPendingPromise = new PendingPromise();
         const sessionJoinAction = new SessionJoinAction(this.user);

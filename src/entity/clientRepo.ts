@@ -11,6 +11,7 @@ import { PendingPromise } from '../util/pendingPromise';
 import { ErrorEvent, CloseEvent } from 'ws';
 import { SiteIdMessage } from '../message/siteIdMessage';
 import { ZippedDataMessage } from '../message/zippedDataMessage';
+import { TextDocument, TextDocumentChangeEvent } from 'vscode';
 
 export class ClientRepo{
     private serverAddress: string;
@@ -135,5 +136,17 @@ export class ClientRepo{
         //待补全执行逻辑
 
         this.zippedDataPendingPromise?.resolve();
+    }
+
+    public onLocalFileOpen(textDocument: TextDocument){
+        //待补全
+    }
+
+    public onLocalFileClose(path: string){
+        //待补全
+    }
+
+    public onLocalFileChange(textDocumentChangeEvent: TextDocumentChangeEvent){
+        //待补全
     }
 } 

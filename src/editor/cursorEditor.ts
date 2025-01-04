@@ -19,9 +19,9 @@ export class CursorEditor {
         this.cursorDecoratorType = window.createTextEditorDecorationType({});
     }
 
-    dispose(){
-        this.cursorDecoratorType.dispose();
-    }
+    // dispose(){
+    //     this.cursorDecoratorType.dispose();
+    // }
 
     // 更新光标视图效果
     updateCursorDecorators() {

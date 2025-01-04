@@ -51,7 +51,7 @@ export class SharedbConnection extends EventEmitter{
         await this.connectingPromise;
     }
 
-    public async createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
+    public createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
         let doc = this.sharedb.get(clientFile.getClientRepo().getRepoId()!, fileOpenAction.getPath()!);
         doc.fetch((err) => {
             if (err) {
@@ -102,4 +102,6 @@ export class SharedbConnection extends EventEmitter{
       
         return doc;
     }
+
+    //光标doc创建待补全
 }

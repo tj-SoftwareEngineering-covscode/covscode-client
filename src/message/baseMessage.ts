@@ -10,4 +10,12 @@ export class BaseMessage{
     constructor(messageType:MessageType){
         this.messageType = messageType;
     }
+
+    public getMessageType(){
+        return this.messageType;
+    }
+
+    public setMessageType(messageType:MessageType){
+        this.messageType = messageType;
+    }
 }

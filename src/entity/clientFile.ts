@@ -5,10 +5,12 @@ import { Mutex } from "async-mutex";
 import { TextDocumentChangeEvent } from "vscode";
 import { DocManager } from "../manager/docManager";
 import * as vscode from "vscode";
+import { FileEditor } from "../editor/fileEditor";
 
 export class ClientFile{
     private openUsers:Map<string,ClientUser>=new Map();
     private clientRepo!:ClientRepo;
+    private fileEditor!:FileEditor;
     private content!:string;
     private version:number;
     private versionMap:Map<number,boolean>=new Map();
@@ -18,8 +20,9 @@ export class ClientFile{
 
     private mutex = new Mutex();
 
-    constructor(clientRepo:ClientRepo){
+    constructor(clientRepo:ClientRepo, fileEditor:FileEditor){
         this.clientRepo = clientRepo;
+        this.fileEditor = fileEditor;
         this.version = 0;
         this.isFromLocal = true;
         this.isFreshing = false;
@@ -38,11 +41,23 @@ export class ClientFile{
     }
 
     public getRelativePath(){
-        //待补全
+        return this.fileEditor.getRelativePath();
     }
 
     public setVersionMap(version:number, isFromLocal:boolean){
         this.versionMap.set(version, isFromLocal);
+    }
+
+    public setVersion(version:number){
+        this.version = version;
+    }
+
+    public addOpenUser(user:ClientUser){
+        this.openUsers.set(user.getSiteId()!, user);
+    }
+
+    public removeOpenUser(user:ClientUser){
+        this.openUsers.delete(user.getSiteId()!);
     }
 
     public async onWrite(newContent:string){

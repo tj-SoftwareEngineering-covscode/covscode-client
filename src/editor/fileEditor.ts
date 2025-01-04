@@ -4,12 +4,12 @@ import { RepoEditor } from './repoEditor';
 import { basename } from 'path';
 
 export class FileEditor {
-    relativePath: string;
-    fileName: string;
-    absolutePath: string;
-    isOpened: boolean;
-    textDocument: TextDocument | null;
-    repoEditor: RepoEditor;
+    private relativePath: string;
+    private fileName: string;
+    private absolutePath: string;
+    private isOpened: boolean;
+    private textDocument: TextDocument | null;
+    private repoEditor: RepoEditor;
 
     constructor(repoEditor: RepoEditor, isOpened: boolean, documentOrPath: TextDocument | string) {
         if(isOpened) {
@@ -28,6 +28,22 @@ export class FileEditor {
         this.repoEditor = repoEditor; 
     }
 
+    getRelativePath(){
+      return this.relativePath;
+    }
+
+    getAbsolutePath(){
+      return this.absolutePath;
+    }
+
+    getFileName(){
+      return this.fileName;
+    }
+
+    getISOpened(){
+      return this.isOpened;
+    }
+
     getCurrentContent(){
         if(this.isOpened){
             return this.textDocument!.getText();
@@ -35,6 +51,15 @@ export class FileEditor {
         else{
             return readFile(this.absolutePath, { encoding: 'utf-8' });
         }
+    }
+
+    getTextDocument(){
+      if(this.isOpened){
+        return this.textDocument;
+      }
+      else{
+        return null;
+      }
     }
 
     async onRewrite(content: string): Promise<void> {

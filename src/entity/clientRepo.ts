@@ -279,7 +279,7 @@ export class ClientRepo{
             targetFile = this.fileMap.get(fileOpenAction.path!)!;
             let doc;
             doc = DocManager.getDoc(targetFile);
-            if (doc === null) {
+            if (doc === null || doc === undefined) {
                 doc = this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                 DocManager.addDoc(targetFile, doc);
             }
@@ -297,7 +297,7 @@ export class ClientRepo{
                 this.fileMap.set(targetFile.getRelativePath(), targetFile);
 
                 let doc=DocManager.getDoc(targetFile);
-                if(doc===null){
+                if(doc===null||doc===undefined){
                     let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
                     doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                     DocManager.addDoc(targetFile, doc);

@@ -165,7 +165,6 @@ export class WorkspaceWatcher{
           }
         }
         await this.clientRepo.onLocalFileChange(textDocumentChangeEvent);
-        console.log('......');
       };
 
       // 文本编辑器选择变化事件

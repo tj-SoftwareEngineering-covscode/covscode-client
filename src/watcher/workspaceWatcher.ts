@@ -23,7 +23,7 @@ export class WorkspaceWatcher{
       private clientRepo: ClientRepo;
       private repoEditor: RepoEditor;
       private listeners: Disposable[] = [];
-      private isDirMap: Map<string, boolean> = new Map(); 
+      private isFileMap: Map<string, boolean> = new Map(); 
       private mutex = new Mutex();
 
       constructor(clientRepo: ClientRepo, repoEditor: RepoEditor){
@@ -58,11 +58,11 @@ export class WorkspaceWatcher{
       };
 
 
-      // 设置文件或文件夹是否为文件夹
+      // 设置文件或文件夹是否为文件
       private async setIsDir(path: string) {
         const stats = await workspace.fs.stat(Uri.file(path));
-        const isDir = stats.type === 2;  // 2 表示文件夹
-        this.isDirMap.set(path, isDir);
+        const isFile = stats.type === 1;  // 1 表示文件
+        this.isFileMap.set(path, isFile);
       }
 
 
@@ -81,9 +81,9 @@ export class WorkspaceWatcher{
         // 获取文件名
         const fileName = basename(fileOrDir.fsPath);
         // 判断是文件还是文件夹
-        const isFile = this.isDirMap.get(fileOrDir.fsPath) ;
+        const isFile = this.isFileMap.get(fileOrDir.fsPath) ;
         // 从Map中删除记录
-        this.isDirMap.delete(fileOrDir.fsPath);
+        this.isFileMap.delete(fileOrDir.fsPath);
         console.log('删除......');
         await this.mutex.runExclusive(async() => {
           // 删除动作
@@ -104,6 +104,8 @@ export class WorkspaceWatcher{
         const { oldUri, newUri } = files[0];
         // 获取相对路径
         const oldPath = this.repoEditor.getRelativePath(oldUri.fsPath);
+        // 获取原来文件名
+        const oldName = basename(oldUri.fsPath);
         // 获取新文件名
         const newName = basename(newUri.fsPath);
         
@@ -116,8 +118,9 @@ export class WorkspaceWatcher{
           let nodeRenameAction = new NodeRenameAction(
               this.clientRepo.getUser(),
               oldPath,
-              newName,
-              isFile
+              oldName,
+              isFile,
+              newName
           );
           let websocketConnection = this.clientRepo.getWebsocketConnection();
           websocketConnection.sendData(nodeRenameAction);

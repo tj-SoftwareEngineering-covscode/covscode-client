@@ -5,8 +5,7 @@ export class ZipUtil {
         const zip = new AdmZip();
         
         // 添加整个目录到zip，使用过滤函数排除不需要的目录
-        const filter = /^((?!node_modules|\.git).)*$/;
-        zip.addLocalFolder(rootPath, '', filter);
+        zip.addLocalFolder(rootPath, '');
         
         return zip.toBuffer();
     }

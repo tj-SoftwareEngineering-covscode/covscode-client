@@ -63,7 +63,6 @@ export class CursorEditor {
                 return {
                   range: new Range(cursorPosition, cursorPosition),
                   renderOptions: {
-                    ...DECORATION_STYLE,
                     before: {
                       ...DECORATION_STYLE.before,
                       backgroundColor: color,
@@ -73,7 +72,7 @@ export class CursorEditor {
                 };
               });
               editor.setDecorations(this.cursorDecoratorType, decorationOptions);
-        });
+        });     
     }
 
 

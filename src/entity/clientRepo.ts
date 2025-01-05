@@ -112,9 +112,7 @@ export class ClientRepo{
         this.siteIdPendingPromise = new PendingPromise();
         await this.websocketConnection.connect();
         await this.sharedbConnection.connect();
-        console.log('开始');
         await this.siteIdPendingPromise.promise;
-        console.log('结束');
     }
 
     public async closeRepo(){
@@ -167,12 +165,10 @@ export class ClientRepo{
 
     private onMessage=async(message:BaseMessage)=>{
         await this.mutex.runExclusive(async()=>{
-            console.log(111);
             if(message.messageType===MessageType.ZippedDataMessage){
                 this.onZipDataMessage(message as ZippedDataMessage);
             }
             else if(message.messageType===MessageType.SiteIdMessage){
-                console.log(222);
                 this.onSiteIdMessage(message as SiteIdMessage);
             }
             else{
@@ -359,7 +355,7 @@ export class ClientRepo{
                 position: position,
             },
         };
-        if (docData.hasOwnProperty(user.getSiteId()!)) {
+        if (docData?.hasOwnProperty(user.getSiteId()!)) {
             let cursorData = docData[user.getSiteId()!];
             op.push({ p: ["cursor", user.getSiteId()!], od: cursorData, oi: insertData });
         } else {
@@ -368,5 +364,6 @@ export class ClientRepo{
 
         await doc?.submitOp(op);
         this.repoEditor.localMoveCursor(insertData);
+        this.repoEditor.updateCursorDecorators();
     }
 } 

@@ -32,7 +32,7 @@ export class StatusBarEditor{
         tooltip.isTrusted = true;
         tooltip.supportThemeIcons = true;
         tooltip.appendMarkdown('### 当前用户\n');
-        allUsers.forEach(user => tooltip.appendMarkdown(`- Site: ${user.getSiteId()} ${user.getUserId}\n`));
+        allUsers.forEach(user => tooltip.appendMarkdown(`- Site: ${user.getSiteId()} ${user.getUserId()}\n`));
         return tooltip;
     }
 }

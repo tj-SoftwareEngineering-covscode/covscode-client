@@ -41,7 +41,7 @@ export class WorkspaceWatcher{
         // 返回文件或文件夹的详细信息，包括类型，大小，创建时间，修改时间等
         const stats = await workspace.fs.stat(fileOrDir); 
         const isFile = stats.type === 1;
-
+        console.log('创建......');
         await this.mutex.runExclusive(async() => {
            // 创建动作
           let nodeCreateAction = new NodeCreateAction(
@@ -83,7 +83,7 @@ export class WorkspaceWatcher{
         const isFile = this.isDirMap.get(fileOrDir.fsPath) ;
         // 从Map中删除记录
         this.isDirMap.delete(fileOrDir.fsPath);
-        
+        console.log('删除......');
         await this.mutex.runExclusive(async() => {
           // 删除动作
           let nodeDeleteAction = new NodeDeleteAction(
@@ -109,7 +109,7 @@ export class WorkspaceWatcher{
         // 判断是文件还是文件夹
         const stats = await workspace.fs.stat(newUri);
         const isFile = stats.type === 1;
-        
+        console.log('重命名......');
         await this.mutex.runExclusive(async() => {
           // 重命名动作
           let nodeRenameAction = new NodeRenameAction(
@@ -128,6 +128,7 @@ export class WorkspaceWatcher{
         if (textDocument.uri.scheme !== "file") {
           return;
         }
+        console.log('打开......');
         this.clientRepo.onLocalFileOpen(textDocument);
         this.repoEditor.updateCursorDecorators();
       };
@@ -137,6 +138,7 @@ export class WorkspaceWatcher{
         if (textDocument.uri.scheme !== "file") {
           return;
         }
+        console.log('关闭......');
         this.clientRepo.onLocalFileClose(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
         this.repoEditor.updateCursorDecorators();
       };
@@ -146,6 +148,7 @@ export class WorkspaceWatcher{
         if (textDocumentChangeEvent.document.uri.scheme !== "file") {
           return;
         }
+        console.log('内容变化......');
         const activeEditor = window.activeTextEditor;
         if (activeEditor) {
           const position = activeEditor.selection.active;
@@ -158,6 +161,7 @@ export class WorkspaceWatcher{
           }
         }
         await this.clientRepo.onLocalFileChange(textDocumentChangeEvent);
+        console.log('......');
       };
 
       // 文本编辑器选择变化事件

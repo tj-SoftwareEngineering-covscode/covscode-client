@@ -15,7 +15,7 @@ export class FileEditor {
         if(isOpened) {
             this.textDocument = documentOrPath as TextDocument;
             this.relativePath = repoEditor.getRelativePath(this.textDocument.uri.fsPath);
-            this.fileName = this.textDocument.fileName;
+            this.fileName = basename(this.textDocument.fileName);
             this.absolutePath = this.textDocument.uri.fsPath;
         } 
         else {

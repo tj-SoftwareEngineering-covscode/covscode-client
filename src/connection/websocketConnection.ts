@@ -115,7 +115,8 @@ export class WebSocketConnection extends EventEmitter {
     //三种连接后的回调
     private onMessage = (me: MessageEvent) => {
         const messageData = JSON.parse(me.data as string);
-        console.log(messageData);
+        console.log('接收');
+        console.log(messageData)
         this.emit('message', messageData);
     };
     

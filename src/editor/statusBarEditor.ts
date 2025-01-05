@@ -11,7 +11,7 @@ export class StatusBarEditor{
 
     // 初始化状态栏
     initStatusBar(user: ClientUser, allUsers: ClientUser[]): void{
-        this.statusBarItem.text = `$(${STATUS_BAR_ICON}) RepoId: ${user.getRepoId()}, SiteId: ${user.getSiteId()}`;
+        this.statusBarItem.text = `$(${STATUS_BAR_ICON}) RepoId: ${user.repoId}, SiteId: ${user.siteId}`;
         this.statusBarItem.tooltip = this.getStatusBarTooltip(allUsers);
     }
 
@@ -32,7 +32,7 @@ export class StatusBarEditor{
         tooltip.isTrusted = true;
         tooltip.supportThemeIcons = true;
         tooltip.appendMarkdown('### 当前用户\n');
-        allUsers.forEach(user => tooltip.appendMarkdown(`- Site: ${user.getSiteId()} ${user.getUserId()}\n`));
+        allUsers.forEach(user => tooltip.appendMarkdown(`- Site: ${user.siteId} ${user.userId}\n`));
         return tooltip;
     }
 }

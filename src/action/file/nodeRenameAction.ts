@@ -2,10 +2,10 @@ import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class NodeRenameAction extends BaseAction{
-    private path?:string;
-    private name?:string;
-    private isFile?:boolean;
-    private newName?:string;
+    path?:string;
+    name?:string;
+    isFile?:boolean;
+    newName?:string;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string, isFile?:boolean, newName?:string){
         super(ActionType.NodeRenameAction, clientUser);

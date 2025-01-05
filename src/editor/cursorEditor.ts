@@ -93,8 +93,8 @@ export class CursorEditor {
 
     // 移除光标信息
     removeCursorInfo(user: ClientUser) {
-        if (user.getSiteId()) {
-            const index = this.userCursorInfoList.findIndex(info => info.user.getSiteId() === user.getSiteId() );
+        if (user.siteId) {
+            const index = this.userCursorInfoList.findIndex(info => info.user.getSiteId() === user.siteId );
             
             if (index !== -1) {
                 this.userCursorInfoList.splice(index, 1);

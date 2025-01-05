@@ -53,7 +53,7 @@ export class SharedbConnection extends EventEmitter{
     }
 
     public createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
-        let doc = this.sharedb.get(clientFile.getClientRepo().getRepoId()!, fileOpenAction.getPath()!);
+        let doc = this.sharedb.get(clientFile.getClientRepo().getRepoId()!, fileOpenAction.path!);
         doc.fetch((err) => {
             if (err) {
                 console.error("获取文档失败:", err);

@@ -12,9 +12,9 @@ export enum ActionType{
 }
 
 export class BaseAction{
-    protected actionType:ActionType;
-    protected clientUser?:ClientUser;
-    protected time:Date;
+    actionType:ActionType;
+    clientUser?:ClientUser;
+    time:Date;
 
     constructor(actionType:ActionType, clientUser?:ClientUser){
         this.actionType = actionType;

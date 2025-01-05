@@ -115,7 +115,8 @@ export class WebSocketConnection extends EventEmitter {
     //三种连接后的回调
     private onMessage = (me: MessageEvent) => {
         const messageData = JSON.parse(me.data as string);
-        this.emit('message', messageData);
+        console.log(messageData);
+        this.emit('message', messageData.data);
     };
     
     private onError = (ee: ErrorEvent) => this.emit('error', ee);
@@ -130,8 +131,10 @@ export class WebSocketConnection extends EventEmitter {
         }
 
         if(data instanceof BaseAction){
+            console.log(new WebSocketMessage(data, true));
             this.websocket.send(JSON.stringify(new WebSocketMessage(data, true)));
         }else{
+            console.log(data);
             this.websocket.send(JSON.stringify(data));
         }
     }

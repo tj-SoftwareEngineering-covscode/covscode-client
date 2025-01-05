@@ -65,11 +65,11 @@ export class ClientFile{
     }
 
     public addOpenUser(user:ClientUser){
-        this.openUsers.set(user.getSiteId()!, user);
+        this.openUsers.set(user.siteId!, user);
     }
 
     public removeOpenUser(user:ClientUser){
-        this.openUsers.delete(user.getSiteId()!);
+        this.openUsers.delete(user.siteId!);
     }
 
     public async onWrite(newContent:string){

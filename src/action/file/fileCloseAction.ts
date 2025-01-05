@@ -2,8 +2,8 @@ import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class FileCloseAction extends BaseAction{
-    private path?:string;   
-    private name?:string;
+    path?:string;   
+    name?:string;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string){
         super(ActionType.FileCloseAction, clientUser);

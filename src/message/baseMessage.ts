@@ -5,7 +5,7 @@ export enum MessageType{
 }
 
 export class BaseMessage{
-    private messageType:MessageType;
+    messageType:MessageType;
 
     constructor(messageType:MessageType){
         this.messageType = messageType;

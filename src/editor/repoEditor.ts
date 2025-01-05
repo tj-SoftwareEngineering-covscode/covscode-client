@@ -52,14 +52,14 @@ export class RepoEditor{
 
     // 新用户加入仓库
     userJoin(joinedUser: ClientUser, allUsers: ClientUser[]){
-        const message = `${joinedUser.getUserId()} 加入了仓库`;
+        const message = `${joinedUser.userId} 加入了仓库`;
         window.showInformationMessage(message);
         this.statusBarEditor.updateStatusBar(allUsers);
     }
 
     // 其他用户离开仓库
     userLeave(leftUser: ClientUser, allUsers: ClientUser[]){
-        const message = `${leftUser.getUserId()} 离开了仓库`;
+        const message = `${leftUser.userId} 离开了仓库`;
         window.showInformationMessage(message);
         this.statusBarEditor.updateStatusBar(allUsers);
         this.cursorEditor.removeCursorInfo(leftUser);
@@ -115,7 +115,7 @@ export class RepoEditor{
                 await fs.mkdir(dirname(absolutePath), { recursive: true });
                 await fs.writeFile(absolutePath, '');
             }
-            window.showInformationMessage(`${user.getUserId()} 创建了 ${isFile ? '文件' : '文件夹'}: ${filePath}`);
+            window.showInformationMessage(`${user.userId} 创建了 ${isFile ? '文件' : '文件夹'}: ${filePath}`);
         } catch (error: any) {
             window.showErrorMessage(`创建${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
         }
@@ -130,7 +130,7 @@ export class RepoEditor{
             } else {
                 await fs.rm(absolutePath, { recursive: true, force: true });
             }
-            window.showInformationMessage(`${user.getUserId()} 删除了 ${isFile ? '文件' : '文件夹'}: ${path}`);
+            window.showInformationMessage(`${user.userId} 删除了 ${isFile ? '文件' : '文件夹'}: ${path}`);
         } catch (error: any) {
             window.showErrorMessage(`删除${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
         }
@@ -146,7 +146,7 @@ export class RepoEditor{
             await fs.mkdir(dirname(absoluteNewPath), { recursive: true });
             await fs.rename(absoluteOldPath, absoluteNewPath);
             window.showInformationMessage(
-                `${user.getUserId()} 将 ${isFile ? '文件' : '文件夹'} 从 ${oldPath} 重命名为 ${newName}`
+                `${user.userId} 将 ${isFile ? '文件' : '文件夹'} 从 ${oldPath} 重命名为 ${newName}`
             );
         } catch (error: any) {
             window.showErrorMessage(`重命名${isFile ? '文件' : '文件夹'}失败: ${error.message}`);
@@ -155,12 +155,12 @@ export class RepoEditor{
 
     // 打开文件
     fileOpen(path: string, user: ClientUser){
-        window.showInformationMessage(`${user.getUserId()} 打开了 ${path} 文件`);
+        window.showInformationMessage(`${user.userId} 打开了 ${path} 文件`);
     }
 
     // 关闭文件
     fileClose(path: string, user: ClientUser){
-        window.showInformationMessage(`${user.getUserId()} 关闭了 ${path} 文件`);
+        window.showInformationMessage(`${user.userId} 关闭了 ${path} 文件`);
     }
     
     // 创建FileEditor

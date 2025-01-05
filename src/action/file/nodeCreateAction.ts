@@ -2,10 +2,10 @@ import { BaseAction, ActionType } from '../baseAction';
 import { ClientUser } from '../../entity/clientUser';
 
 export class NodeCreateAction extends BaseAction{
-    private path?:string;
-    private name?:string;
-    private isFile?:boolean;
-    private content?:string;
+    path?:string;
+    name?:string;
+    isFile?:boolean;
+    content?:string;
 
     constructor(clientUser?:ClientUser, path?:string, name?:string, isFile?:boolean, content?:string){
         super(ActionType.NodeCreateAction, clientUser);

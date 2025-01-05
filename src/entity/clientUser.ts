@@ -1,7 +1,7 @@
 export class ClientUser{
-    private userId?:string;
-    private siteId?:string;
-    private repoId?:string;
+    userId?:string;
+    siteId?:string;
+    repoId?:string;
 
     constructor(userId?:string, siteId?:string, repoId?:string){
         this.userId = userId;

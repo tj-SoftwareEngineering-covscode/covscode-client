@@ -188,15 +188,17 @@ export class WorkspaceWatcher{
         
         // 直接关闭所有打开的文件
         const tabGroups = window.tabGroups;
-        for (const tabGroup of tabGroups.all) {
-            for (const tab of tabGroup.tabs) {
-                const input = tab.input;
-                if (input instanceof TabInputText) {
-                    await window.tabGroups.close(tab);
-                }
-            }
+        // 收集所有需要关闭的标签页
+        const tabsToClose = tabGroups.all.flatMap(group => 
+          group.tabs.filter(tab => tab.input instanceof TabInputText)
+        );
+        
+        // 一次性关闭所有标签页
+        if (tabsToClose.length > 0) {
+          await window.tabGroups.close(tabsToClose);
         }
-        // 第一个参数代表回调函数，第二个代表this指向，第三个参数代表存储监听器的数组
+
+        // 设置监听器
         workspace.onDidOpenTextDocument(this.onFileOpen, null, this.listeners);
         workspace.onDidCloseTextDocument(this.onFileClose, null, this.listeners);
         workspace.onDidChangeTextDocument(this.onChangeTextDocument, null, this.listeners);

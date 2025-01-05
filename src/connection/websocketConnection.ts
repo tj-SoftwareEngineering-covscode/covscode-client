@@ -98,9 +98,16 @@ export class WebSocketConnection extends EventEmitter {
         }
 
         this.closePromise = new Promise<void>((res, rej) => {
-            this.websocket.close();
             this.websocket.removeAllListeners();
-            this.closePromise = undefined;
+            this.websocket.addEventListener("close", () => {
+                res();
+                this.websocket.removeAllListeners();
+            });
+            this.websocket.addEventListener("error", (ev) => {
+                rej(new Error(`${ev.type}: ${ev.message}`));
+                this.websocket.removeAllListeners();
+            });
+            this.websocket.close();
         });
         await this.closePromise;
     }

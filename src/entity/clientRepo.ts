@@ -137,6 +137,7 @@ export class ClientRepo{
       
         await this.websocketConnection.sendData(sessionLeaveAction);
         await this.websocketConnection.close();
+        await this.sharedbConnection.close();
         this.repoEditor.localLeave();
         this.workspaceWatcher.removeListeners();
         DocManager.clear();

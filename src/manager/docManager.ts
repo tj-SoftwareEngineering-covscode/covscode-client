@@ -1,5 +1,6 @@
 import { Doc } from "sharedb";
 import { ClientFile } from "../entity/clientFile";
+import { ClientRepo } from "../entity/clientRepo";
 
 export class DocManager{
     private static docMap: Map<string, Doc> = new Map();
@@ -21,6 +22,16 @@ export class DocManager{
         this.docMap.set(docId!, doc);
     }
 
+    public static getRepoDoc(clientRepo:ClientRepo){
+        const key = clientRepo.getRepoId()! + "cursor";
+        return this.docMap.get(key);
+    }
+
+    public static addRepoDoc(clientRepo:ClientRepo, doc:Doc){
+        const key = clientRepo.getRepoId()! + "cursor";
+        DocManager.docMap.set(key, doc);
+    }
+
     public static hasLastVersion(doc: Doc){
         return doc ? DocManager.docVersionMap.has(doc) : false;
     }
@@ -33,5 +44,10 @@ export class DocManager{
         if (doc) {
             DocManager.docVersionMap.set(doc, doc.version!);
         }
+    }
+
+    public static clear(){
+        this.docMap.clear();
+        this.docVersionMap.clear();
     }
 }

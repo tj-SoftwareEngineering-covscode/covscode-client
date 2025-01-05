@@ -81,7 +81,6 @@ export class SharedbConnection extends EventEmitter{
         });
 
         doc.on("op batch", async (op, source) => {
-            console.log('响应');
             if (source == clientFile.getClientRepo().getUserId()) {
                 console.log("收到op", op);
                 console.log("doc 内容为", doc.data.content);

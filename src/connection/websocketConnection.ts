@@ -116,7 +116,7 @@ export class WebSocketConnection extends EventEmitter {
     private onMessage = (me: MessageEvent) => {
         const messageData = JSON.parse(me.data as string);
         console.log(messageData);
-        this.emit('message', messageData.data);
+        this.emit('message', messageData);
     };
     
     private onError = (ee: ErrorEvent) => this.emit('error', ee);

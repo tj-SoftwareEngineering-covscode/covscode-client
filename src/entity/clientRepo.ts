@@ -202,7 +202,7 @@ export class ClientRepo{
     }
 
     //进一步对WebSocketMessage进行分类
-    private onWebSocketMessage(websocketMessage:WebSocketMessage){
+    private onWebSocketMessage=async(websocketMessage:WebSocketMessage)=>{
         switch(websocketMessage.data.actionType){
             case ActionType.SessionInitAction:
                 //用户不会收到SessionInitAction
@@ -214,13 +214,13 @@ export class ClientRepo{
                 this.onSessionLeaveAction(websocketMessage.data as SessionLeaveAction);
                 break;
             case ActionType.NodeCreateAction:
-                this.onNodeCreateAction(websocketMessage.data as NodeCreateAction);
+                await this.onNodeCreateAction(websocketMessage.data as NodeCreateAction);
                 break;
             case ActionType.NodeDeleteAction:
-                this.onNodeDeleteAction(websocketMessage.data as NodeDeleteAction);
+                await this.onNodeDeleteAction(websocketMessage.data as NodeDeleteAction);
                 break;
             case ActionType.NodeRenameAction:
-                this.onNodeRenameAction(websocketMessage.data as NodeRenameAction);
+                await this.onNodeRenameAction(websocketMessage.data as NodeRenameAction);
                 break;
             case ActionType.FileCloseAction:
                 this.onFileCloseAction(websocketMessage.data as FileCloseAction);

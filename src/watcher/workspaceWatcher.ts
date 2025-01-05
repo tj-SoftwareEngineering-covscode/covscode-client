@@ -49,7 +49,7 @@ export class WorkspaceWatcher{
             relativePath, 
             fileName, 
             isFile, 
-            ' '
+            ''
           );
           let websocketConnection = this.clientRepo.getWebsocketConnection();
           websocketConnection.sendData(nodeCreateAction);

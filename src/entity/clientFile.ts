@@ -11,7 +11,7 @@ export class ClientFile{
     private openUsers:Map<string,ClientUser>=new Map();
     private clientRepo!:ClientRepo;
     private fileEditor!:FileEditor;
-    private content!:string;
+    private content:string='';
     private version:number;
     private versionMap:Map<number,boolean>=new Map();
     private isFromLocal:boolean;
@@ -122,6 +122,10 @@ export class ClientFile{
             
             let doc=DocManager.getDoc(this);
 
+            if(doc===undefined||doc===null){
+                console.log(this.getFileName()+'文件没有doc');
+            }
+
             if (this.getFileContent() === doc?.data.content) {
                 this.content=textDocumentChangeEvent.document.getText(); // 更新内部内容
                 return;
@@ -164,7 +168,6 @@ export class ClientFile{
             });
 
             this.content=textDocumentChangeEvent.document.getText();
-
             let setVersion = () => {
                 this.setVersionMap(doc?.version!, true); // 设置版本映射
             };

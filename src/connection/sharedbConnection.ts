@@ -59,7 +59,7 @@ export class SharedbConnection extends EventEmitter{
                 console.error("获取文档失败:", err);
             } else {
                 if (doc.type === null) {
-                    doc.create({ content: clientFile.getContent() }, (err) => {
+                    doc.create({ content: clientFile.getFileContent() }, (err) => {
                         if (err) {
                             console.error("创建文档失败:", err);
                         } else {
@@ -81,6 +81,7 @@ export class SharedbConnection extends EventEmitter{
         });
 
         doc.on("op batch", async (op, source) => {
+            console.log('响应');
             if (source == clientFile.getClientRepo().getUserId()) {
                 console.log("收到op", op);
                 console.log("doc 内容为", doc.data.content);

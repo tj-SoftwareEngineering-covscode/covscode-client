@@ -351,7 +351,7 @@ export class ClientRepo{
         let op: { p: [string, string]; od?: Object; oi?: Object }[] = [];
         let insertData = {
             user: this.user,
-            caretPosition: {
+            cursorPosition: {
                 filePath: path,
                 position: position,
             },
@@ -364,6 +364,6 @@ export class ClientRepo{
         }
 
         await doc?.submitOp(op);
-        this.setCursorData(doc?.data.cursor);
+        this.repoEditor.localMoveCursor(insertData);
     }
 } 

@@ -66,7 +66,7 @@ export class CursorEditor {
                     before: {
                       ...DECORATION_STYLE.before,
                       backgroundColor: color,
-                      contentText: info.user.getUserId(),
+                      contentText: info.user.userId,
                     },
                   },
                 };
@@ -78,10 +78,10 @@ export class CursorEditor {
 
     // 更新光标信息
     updateCursorInfos(user: ClientUser, filePath: string, position: number) {
-        assert(user.getSiteId(), 'siteId is required for cursorMove');
+        assert(user.siteId, 'siteId is required for cursorMove');
 
         // 查找当前用户的光标信息
-        const targetInfo = this.userCursorInfoList.find(info => info.user.getSiteId() === user.getSiteId() );
+        const targetInfo = this.userCursorInfoList.find(info => info.user.siteId === user.siteId );
 
         if (targetInfo) {
             targetInfo.cursorPosition = { filePath, position };
@@ -93,7 +93,7 @@ export class CursorEditor {
     // 移除光标信息
     removeCursorInfo(user: ClientUser) {
         if (user.siteId) {
-            const index = this.userCursorInfoList.findIndex(info => info.user.getSiteId() === user.siteId );
+            const index = this.userCursorInfoList.findIndex(info => info.user.siteId === user.siteId );
             
             if (index !== -1) {
                 this.userCursorInfoList.splice(index, 1);

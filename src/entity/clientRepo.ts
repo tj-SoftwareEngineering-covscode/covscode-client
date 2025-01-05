@@ -148,7 +148,7 @@ export class ClientRepo{
         this.users.push(this.user);
         await this.connect();
         const data=await this.repoEditor.getZipData();
-        const sessionInitAction = new SessionInitAction(this.user, data.toString('utf-8'));
+        const sessionInitAction = new SessionInitAction(this.user, data.toString('latin1'));
         await this.websocketConnection.sendData(sessionInitAction);
         this.repoEditor.finishInitRepo(this.user, this.users);
     }

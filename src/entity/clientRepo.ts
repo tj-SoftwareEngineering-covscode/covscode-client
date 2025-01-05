@@ -116,11 +116,11 @@ export class ClientRepo{
     }
 
     public async closeRepo(){
-        await Promise.all(
-            [...this.fileMap.keys()]
-              .filter((key) => this.fileMap.get(key)?.getIsOpened())
-              .map(this.onLocalFileClose)
-        );
+        for(let file of this.fileMap.values()){
+            if(file.getIsOpened()){
+                await this.onLocalFileClose(file.getRelativePath());
+            }
+        }
         this.users = [];
         this.fileMap.clear();
         const sessionLeaveAction = new SessionLeaveAction(this.user);

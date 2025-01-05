@@ -97,9 +97,9 @@ export class ClientRepo{
         this.repoEditor.startInitRepo();
 
         if(isNew){
-            this.initRepo();
+            await this.initRepo();
         }else{
-            this.joinRepo();
+            await this.joinRepo();
         }
 
         this.workspaceWatcher.setListeners();

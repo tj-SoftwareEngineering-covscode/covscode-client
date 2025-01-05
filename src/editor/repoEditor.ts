@@ -139,7 +139,7 @@ export class RepoEditor{
     // 重命名节点
     async nodeRename(oldPath: string, newName: string, user: ClientUser, isFile: boolean) {
         const absoluteOldPath = this.getAbsolutePath(oldPath);
-        const parentDir = dirname(oldPath);
+        const parentDir = dirname(absoluteOldPath);
         const absoluteNewPath = join(parentDir, newName);
         
         try {

@@ -16,7 +16,7 @@ export class SharedbConnection extends EventEmitter{
     private connectingPromise?:Promise<void>;
 
     get readyState(){
-        return this.reconnectingWebSocket.readyState??WebSocket.CLOSED;
+        return this.reconnectingWebSocket?.readyState??WebSocket.CLOSED;
     }
 
 

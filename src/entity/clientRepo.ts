@@ -343,4 +343,27 @@ export class ClientRepo{
         let targetFile = this.fileMap.get(this.repoEditor.getRelativePath(textDocumentChangeEvent.document.uri.fsPath));
         await targetFile?.fileContentUpdate(textDocumentChangeEvent);
     }
+
+    public async onLocalCursorMove(path: string, fileName: string, position: number){
+        let user = this.user;
+        let doc = DocManager.getRepoDoc(this);
+        let docData = doc?.data.cursor;
+        let op: { p: [string, string]; od?: Object; oi?: Object }[] = [];
+        let insertData = {
+            user: this.user,
+            caretPosition: {
+                filePath: path,
+                position: position,
+            },
+        };
+        if (docData.hasOwnProperty(user.getSiteId()!)) {
+            let cursorData = docData[user.getSiteId()!];
+            op.push({ p: ["cursor", user.getSiteId()!], od: cursorData, oi: insertData });
+        } else {
+            op.push({ p: ["cursor", user.getSiteId()!], oi: insertData });
+        }
+
+        await doc?.submitOp(op);
+        this.setCursorData(doc?.data.cursor);
+    }
 } 

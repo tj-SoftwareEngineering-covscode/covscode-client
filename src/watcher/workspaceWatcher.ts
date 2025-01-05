@@ -150,7 +150,7 @@ export class WorkspaceWatcher{
         if (activeEditor) {
           const position = activeEditor.selection.active;
           if (activeEditor.document.uri.scheme === "file") {
-            this.clientRepo.localCursorMove(
+            this.clientRepo.onLocalCursorMove(
               this.repoEditor.getRelativePath(activeEditor.document.uri.fsPath),
               activeEditor.document.fileName,
               activeEditor.document.offsetAt(position)
@@ -165,7 +165,7 @@ export class WorkspaceWatcher{
         if (textEditor.document.uri.scheme !== "file") {
           return;
         }
-        this.clientRepo.localCursorMove(
+        this.clientRepo.onLocalCursorMove(
           this.repoEditor.getRelativePath(textEditor.document.uri.fsPath),
           textEditor.document.fileName,
           textEditor.document.offsetAt(selections[0].active)

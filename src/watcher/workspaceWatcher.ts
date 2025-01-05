@@ -16,19 +16,19 @@ import { Disposable,
         workspace, 
 } from "vscode";
 import { basename } from 'path';
+import { Mutex } from 'async-mutex';
 
 export class WorkspaceWatcher{
       private clientRepo: ClientRepo;
       private repoEditor: RepoEditor;
       private listeners: Disposable[] = [];
       private isDirMap: Map<string, boolean> = new Map(); 
+      private mutex = new Mutex();
 
       constructor(clientRepo: ClientRepo, repoEditor: RepoEditor){
         this.clientRepo = clientRepo;       
         this.repoEditor = repoEditor;
       }
-
-
 
       // 文件或文件夹创建事件
       private onNodeCreate = async({files}: FileCreateEvent) =>{
@@ -42,17 +42,20 @@ export class WorkspaceWatcher{
         const stats = await workspace.fs.stat(fileOrDir); 
         const isFile = stats.type === 1;
 
-        // 创建动作
-        let nodeCreateAction = new NodeCreateAction(
+        await this.mutex.runExclusive(async() => {
+           // 创建动作
+          let nodeCreateAction = new NodeCreateAction(
             this.clientRepo.getUser(), 
             relativePath, 
             fileName, 
             isFile, 
             ' '
-        );
-        let websocketConnection = this.clientRepo.getWebsocketConnection();
-        websocketConnection.sendData(nodeCreateAction);
+          );
+          let websocketConnection = this.clientRepo.getWebsocketConnection();
+          websocketConnection.sendData(nodeCreateAction);
+        });  
       };
+
 
       // 设置文件或文件夹是否为文件夹
       private async setIsDir(path: string) {
@@ -60,6 +63,7 @@ export class WorkspaceWatcher{
         const isDir = stats.type === 2;  // 2 表示文件夹
         this.isDirMap.set(path, isDir);
       }
+
 
       // 处理文件或文件夹即将删除事件
       private onWillDeleteNode = (event: FileWillDeleteEvent) => {
@@ -80,17 +84,20 @@ export class WorkspaceWatcher{
         // 从Map中删除记录
         this.isDirMap.delete(fileOrDir.fsPath);
         
-        // 删除动作
-        let nodeDeleteAction = new NodeDeleteAction(
-            this.clientRepo.getUser(),
-            relativePath,
-            fileName,
-            isFile
-        );
-        let websocketConnection = this.clientRepo.getWebsocketConnection();
-        websocketConnection.sendData(nodeDeleteAction);
+        await this.mutex.runExclusive(async() => {
+          // 删除动作
+          let nodeDeleteAction = new NodeDeleteAction(
+              this.clientRepo.getUser(),
+              relativePath,
+              fileName,
+              isFile
+          );
+          let websocketConnection = this.clientRepo.getWebsocketConnection();
+          websocketConnection.sendData(nodeDeleteAction);
+        });
       };
       
+
       // 文件或文件夹重命名事件
       private onNodeRename = async({ files }: FileRenameEvent) => {
         const { oldUri, newUri } = files[0];
@@ -103,44 +110,71 @@ export class WorkspaceWatcher{
         const stats = await workspace.fs.stat(newUri);
         const isFile = stats.type === 1;
         
-        // 重命名动作
-        let nodeRenameAction = new NodeRenameAction(
-            this.clientRepo.getUser(),
-            oldPath,
-            newName,
-            isFile
-        );
-        let websocketConnection = this.clientRepo.getWebsocketConnection();
-        websocketConnection.sendData(nodeRenameAction);
+        await this.mutex.runExclusive(async() => {
+          // 重命名动作
+          let nodeRenameAction = new NodeRenameAction(
+              this.clientRepo.getUser(),
+              oldPath,
+              newName,
+              isFile
+          );
+          let websocketConnection = this.clientRepo.getWebsocketConnection();
+          websocketConnection.sendData(nodeRenameAction);
+        });
       };
 
       // 文件打开事件
       private onFileOpen = async(textDocument: TextDocument) => {
-        if (textDocument.uri.scheme !== "file") return;
+        if (textDocument.uri.scheme !== "file") {
+          return;
+        }
         this.clientRepo.onLocalFileOpen(textDocument);
         this.repoEditor.updateCursorDecorators();
       };
 
       // 文件关闭事件
       private onFileClose = async(textDocument: TextDocument) => {
-        if (textDocument.uri.scheme !== "file") return;
-        this.clientRepo?.onLocalFileClose(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
+        if (textDocument.uri.scheme !== "file") {
+          return;
+        }
+        this.clientRepo.onLocalFileClose(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
         this.repoEditor.updateCursorDecorators();
       };
 
       // 文件内容变化事件
       private onChangeTextDocument = async(textDocumentChangeEvent: TextDocumentChangeEvent) => {
-
+        if (textDocumentChangeEvent.document.uri.scheme !== "file") {
+          return;
+        }
+        const activeEditor = window.activeTextEditor;
+        if (activeEditor) {
+          const position = activeEditor.selection.active;
+          if (activeEditor.document.uri.scheme === "file") {
+            this.clientRepo.localCursorMove(
+              this.repoEditor.getRelativePath(activeEditor.document.uri.fsPath),
+              activeEditor.document.fileName,
+              activeEditor.document.offsetAt(position)
+            );
+          }
+        }
+        await this.clientRepo.onLocalFileChange(textDocumentChangeEvent);
       };
 
       // 文本编辑器选择变化事件
       private onChangeSeletion = ({ textEditor, selections }: TextEditorSelectionChangeEvent) => {
-
+        if (textEditor.document.uri.scheme !== "file") {
+          return;
+        }
+        this.clientRepo.localCursorMove(
+          this.repoEditor.getRelativePath(textEditor.document.uri.fsPath),
+          textEditor.document.fileName,
+          textEditor.document.offsetAt(selections[0].active)
+        );
       };
 
       // 可见文本编辑器变化事件
       private onChangeVisibleTextEditors = () => {
-
+        this.repoEditor.updateCursorDecorators();
       };
 
       // 设置监听器
@@ -163,6 +197,4 @@ export class WorkspaceWatcher{
         this.listeners.forEach((listener) => listener.dispose());
         this.listeners = [];
       }
-
-
 }

@@ -40,7 +40,7 @@ export class FileEditor {
       return this.fileName;
     }
 
-    getISOpened(){
+    getIsOpened(){
       return this.isOpened;
     }
 

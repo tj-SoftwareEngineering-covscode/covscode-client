@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { ClientFile } from '../entity/clientFile';
 import { FileOpenAction } from '../action/file/fileOpenAction';
 import { DocManager } from '../manager/docManager';
+import { ClientRepo } from '../entity/clientRepo';
 
 export class SharedbConnection extends EventEmitter{
     private reconnectingWebSocket!:ReconnectingWebSocket;
@@ -80,8 +81,6 @@ export class SharedbConnection extends EventEmitter{
         });
 
         doc.on("op batch", async (op, source) => {
-            let docInstance = DocManager.getDoc(clientFile);
-      
             if (source == clientFile.getClientRepo().getUserId()) {
                 console.log("收到op", op);
                 console.log("doc 内容为", doc.data.content);
@@ -103,5 +102,44 @@ export class SharedbConnection extends EventEmitter{
         return doc;
     }
 
-    //光标doc创建待补全
+    public createCursorDoc(clientRepo:ClientRepo){
+        let doc=this.sharedb.get(clientRepo.getRepoId()!, "cursor");
+        doc.fetch((err) => {
+            if (err) {
+                console.error("获取光标文档失败:", err);
+            }else{
+                if(doc.type===null){
+                    doc.create({ cursor: {} }, (err) => {
+                        if (err) {
+                            console.error("创建文档失败:", err);
+                        } else {
+                            console.log("光标文档已创建");
+                        }
+                    });
+                }
+            }
+        });
+
+        doc.subscribe(async (err) => {
+            if (err) {
+              throw err;
+            }
+            const docContent = doc.data.cursor;
+            clientRepo.setCursorData(docContent);
+        });
+      
+        doc.on("op batch", async (op, source) => {
+            if (!source) {
+              console.log("收到光标doc");
+              const docContent = doc.data.cursor;
+              clientRepo.setCursorData(docContent);
+            }
+        });
+
+        return doc;
+    }
+
+    public close(){
+        this.reconnectingWebSocket.close();
+    }
 }

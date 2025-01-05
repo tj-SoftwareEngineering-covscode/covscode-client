@@ -25,12 +25,14 @@ import { ActionType } from '../action/baseAction';
 import { FileEditor } from '../editor/fileEditor';
 import { ClientFile } from './clientFile';
 import { DocManager } from '../manager/docManager';
+import { WorkspaceWatcher } from '../watcher/workspaceWatcher';
 
 export class ClientRepo{
     private serverAddress: string;
     private repoEditor: RepoEditor;
     private websocketConnection: WebSocketConnection;
     private sharedbConnection: SharedbConnection;
+    private workspaceWatcher: WorkspaceWatcher;
     private user: ClientUser;
     private users: ClientUser[]=[]; 
     private fileMap: Map<string, ClientFile> = new Map();
@@ -41,9 +43,7 @@ export class ClientRepo{
     constructor(userInput:UserInput, repoEditor: RepoEditor){
         this.serverAddress = userInput.serverAddress;
         this.repoEditor = repoEditor;
-
-        //待补全watcher内容
-
+        this.workspaceWatcher = new WorkspaceWatcher(this, this.repoEditor);
         this.websocketConnection = new WebSocketConnection(this.serverAddress);
         this.sharedbConnection = new SharedbConnection(this.serverAddress);
         this.user = new ClientUser();
@@ -83,6 +83,15 @@ export class ClientRepo{
         this.websocketConnection.on('close', this.onClose);
     }
 
+    public setCursorData(cursorData: { [key: string]: any }) {
+        for (var key in cursorData) {
+            if (cursorData.hasOwnProperty(key)) {
+                this.repoEditor.updateCursor(cursorData[key]);
+            }
+        }
+        this.repoEditor.updateCursorDecorators();
+    }
+
     //连接仓库
     public async connectRepo(isNew:boolean){
         this.repoEditor.startInitRepo();
@@ -93,9 +102,10 @@ export class ClientRepo{
             this.joinRepo();
         }
 
-        //待补全watcher内容
+        this.workspaceWatcher.setListeners();
 
-        //待补全cursor的doc内容
+        let cursorDoc=this.sharedbConnection.createCursorDoc(this);
+        DocManager.addRepoDoc(this, cursorDoc);
     }
 
     private async connect(){
@@ -106,8 +116,30 @@ export class ClientRepo{
     }
 
     public async closeRepo(){
-        //待补全
+        await Promise.all(
+            [...this.fileMap.keys()]
+              .filter((key) => this.fileMap.get(key)?.getIsOpened())
+              .map(this.onLocalFileClose)
+        );
+        this.users = [];
+        this.fileMap.clear();
+        const sessionLeaveAction = new SessionLeaveAction(this.user);
+      
+        let doc = DocManager.getRepoDoc(this);
+        let docData = doc?.data.cursor;
+      
+        if (docData.hasOwnProperty(this.user.getSiteId()!)) {
+            let op: { p: [string, string]; od?: Object; oi?: Object }[] = [];
+            let cursorData = docData[this.user.getSiteId()!];
+            op.push({ p: ["cursor", this.user.getSiteId()!], od: cursorData });
+            doc?.submitOp(op);
+        }
+      
+        await this.websocketConnection.sendData(sessionLeaveAction);
         await this.websocketConnection.close();
+        this.repoEditor.localLeave();
+        this.workspaceWatcher.removeListeners();
+        DocManager.clear();
     }
 
     //新建仓库的操作
@@ -147,11 +179,16 @@ export class ClientRepo{
     }
 
     private onError=async(ee: ErrorEvent)=>{
-        //待补全
+        this.clearConnection();
     }
 
     private onClose=async(ce: CloseEvent)=>{
-        //待补全
+        this.clearConnection();
+    }
+
+    private clearConnection(){
+        this.websocketConnection.close();
+        this.sharedbConnection.close();
     }
 
     private onSiteIdMessage(siteIdMessage:SiteIdMessage){
@@ -252,15 +289,58 @@ export class ClientRepo{
         this.repoEditor.fileOpen(targetFile.getRelativePath(), fileOpenAction.getClientUser()!);
     }
 
-    public onLocalFileOpen(textDocument: TextDocument){
-        //待补全
+    public async onLocalFileOpen(textDocument: TextDocument){
+        await this.mutex.runExclusive(async () =>{
+            let targetFile = this.fileMap.get(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
+            if(!targetFile){
+                targetFile = new ClientFile(this, new FileEditor(this.repoEditor, true, textDocument));
+                targetFile.addOpenUser(this.user);
+                this.fileMap.set(targetFile.getRelativePath(), targetFile);
+
+                let doc=DocManager.getDoc(targetFile);
+                if(doc===null){
+                    let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
+                    doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
+                    DocManager.addDoc(targetFile, doc);
+                }
+                targetFile.setVersion(doc!.version!);
+            }
+            else if(!targetFile.getIsOpened()){
+                targetFile.addOpenUser(this.user);
+                targetFile.resetFileEditor(new FileEditor(this.repoEditor, true, textDocument));
+
+                let doc=DocManager.getDoc(targetFile);
+                if(doc===null){
+                    let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
+                    doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
+                    DocManager.addDoc(targetFile, doc);
+                }
+                targetFile.setVersion(doc!.version!);
+            }
+            else{
+                //已经打开了
+            }
+
+            let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
+            await this.websocketConnection.sendData(fileOpenAction);
+        })
     }
 
-    public onLocalFileClose(path: string){
-        //待补全
+    public async onLocalFileClose(path: string){
+        let targetFile = this.fileMap.get(path);
+        if(!targetFile||!targetFile.getIsOpened()){
+            return;
+        }
+
+        await this.mutex.runExclusive(async () =>{
+            targetFile.resetFileEditor(new FileEditor(this.repoEditor, false, path));
+            let fileCloseAction=new FileCloseAction(this.user, path, targetFile.getFileName());
+            await this.websocketConnection.sendData(fileCloseAction);
+        })
     }
 
-    public onLocalFileChange(textDocumentChangeEvent: TextDocumentChangeEvent){
-        //待补全
+    public async onLocalFileChange(textDocumentChangeEvent: TextDocumentChangeEvent){
+        let targetFile = this.fileMap.get(this.repoEditor.getRelativePath(textDocumentChangeEvent.document.uri.fsPath));
+        await targetFile?.fileContentUpdate(textDocumentChangeEvent);
     }
 } 

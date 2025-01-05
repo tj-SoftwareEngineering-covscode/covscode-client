@@ -37,19 +37,31 @@ export class ClientFile{
     }
 
     public getFileContent(){
-        //待补全
+        return this.fileEditor.getCurrentContent();
     }
 
     public getRelativePath(){
         return this.fileEditor.getRelativePath();
     }
 
+    public getFileName(){
+        return this.fileEditor.getFileName();
+    }
+
     public setVersionMap(version:number, isFromLocal:boolean){
         this.versionMap.set(version, isFromLocal);
     }
 
+    public getIsOpened(){
+        return this.fileEditor.getIsOpened();
+    }
+
     public setVersion(version:number){
         this.version = version;
+    }
+
+    public resetFileEditor(fileEditor:FileEditor){
+        this.fileEditor = fileEditor;
     }
 
     public addOpenUser(user:ClientUser){
@@ -61,7 +73,7 @@ export class ClientFile{
     }
 
     public async onWrite(newContent:string){
-        //待补全
+        this.fileEditor.onRewrite(newContent);
     }
 
     public async excute(action:BaseAction){

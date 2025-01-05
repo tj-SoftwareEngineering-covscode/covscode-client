@@ -14,6 +14,7 @@ import { Disposable,
         Uri, 
         window, 
         workspace, 
+        TabInputText,
 } from "vscode";
 import { basename } from 'path';
 import { Mutex } from 'async-mutex';
@@ -182,8 +183,19 @@ export class WorkspaceWatcher{
       };
 
       // 设置监听器
-      setListeners(){
+      async setListeners(){
         this.removeListeners();
+        
+        // 直接关闭所有打开的文件
+        const tabGroups = window.tabGroups;
+        for (const tabGroup of tabGroups.all) {
+            for (const tab of tabGroup.tabs) {
+                const input = tab.input;
+                if (input instanceof TabInputText) {
+                    await window.tabGroups.close(tab);
+                }
+            }
+        }
         // 第一个参数代表回调函数，第二个代表this指向，第三个参数代表存储监听器的数组
         workspace.onDidOpenTextDocument(this.onFileOpen, null, this.listeners);
         workspace.onDidCloseTextDocument(this.onFileClose, null, this.listeners);

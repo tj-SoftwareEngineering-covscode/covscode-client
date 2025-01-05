@@ -197,7 +197,7 @@ export class ClientRepo{
 
     private async onZipDataMessage(zippedDataMessage:ZippedDataMessage){
         this.users = [...zippedDataMessage.users!];
-        await this.repoEditor.unzipRepoData(Buffer.from(zippedDataMessage.data!, "utf-8"));
+        await this.repoEditor.unzipRepoData(Buffer.from(zippedDataMessage.data!, "latin1"));
         this.zippedDataPendingPromise?.resolve();
     }
 

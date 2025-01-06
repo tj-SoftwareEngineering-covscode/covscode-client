@@ -4,6 +4,7 @@ import { RepoEditor } from './editor/repoEditor';
 import { ClientRepo } from './entity/clientRepo';
 import { WebSocketConnection } from './connection/websocketConnection';
 import { WebSocket } from 'ws';
+import * as fsUtils from './util/fs';
 //用户输入的数据结构
 export type UserInput = {
 	option:StartOption;
@@ -73,9 +74,19 @@ class Extension extends vscode.Disposable{
     	switch(selected){
 			case CreateOptionName:
 				userInput.option=StartOption.Create;
+				if(!(await this.checkWorkSpaceRoot(userInput)))
+				{
+					console.log("!11")
+					return
+				}
 				break;
 			case JoinOptionName:
 				userInput.option=StartOption.Join;
+				if(!(await this.checkWorkSpaceRoot(userInput)))
+				{
+					console.log("!112")
+					return
+				}
 				break;
 			case QuitOptionName:
 				userInput.option=StartOption.Quit;
@@ -138,6 +149,54 @@ class Extension extends vscode.Disposable{
 		//待补全
 		this.clientRepo = undefined;
 		this.repoEditor = undefined;
+	}
+
+    // 检查工作区根目录是否符合要求
+	private async checkWorkSpaceRoot(userInput:UserInput)
+	{
+		console.log("in")
+		if(userInput.option === StartOption.Create
+			&& vscode.workspace.workspaceFolders?.length !== 1 
+		)
+		{
+			console.log(userInput)
+			vscode.window.showErrorMessage('创建仓库时，工作区只能有一个文件夹')
+			return false
+		}
+		if(userInput.option === StartOption.Join)
+		{
+			if(vscode.workspace.workspaceFolders?.length !==1)
+			{
+				vscode.window.showErrorMessage('创建仓库时，工作区只能有一个文件夹')
+				return false
+			}
+			if(!(await fsUtils.isDirEmpty(vscode.workspace.workspaceFolders[0]!.uri.fsPath)))
+			{
+				const choice = await vscode.window.showInformationMessage(
+					"当前文件夹并不是空的, 您希望将当前文件夹清空吗（不清空将导致仓库克隆出错）?",
+					"是",
+					"否")
+				if(choice === "是")
+				{
+					await fsUtils.emptyDir(vscode.workspace.workspaceFolders[0]!.uri.fsPath)
+					await vscode.workspace.textDocuments.forEach(async (doc)=>
+					{
+						if (!doc.isClosed) {
+							await vscode.window.showTextDocument(doc);
+							await vscode.commands.executeCommand(
+							  "workbench.action.closeActiveEditor"
+							);
+						  }						
+					})
+				}else{
+					vscode.window.showWarningMessage(
+						"你的文件夹必须是空文件夹，否则将导致仓库克隆出错"
+					  );
+					  return false;
+				}
+			}
+		}
+		return true
 	}
 }
 

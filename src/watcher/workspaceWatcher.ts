@@ -238,8 +238,8 @@ export class WorkspaceWatcher{
           return;
         }
         console.log('打开......');
-        this.clientRepo.onLocalFileOpen(textDocument);
-        this.repoEditor.updateCursorDecorators();
+        await this.clientRepo.onLocalFileOpen(textDocument);
+        await this.repoEditor.updateCursorDecorators();
       };
 
       // 文件关闭事件
@@ -248,8 +248,8 @@ export class WorkspaceWatcher{
           return;
         }
         console.log('关闭......');
-        this.clientRepo.onLocalFileClose(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
-        this.repoEditor.updateCursorDecorators();
+        await this.clientRepo.onLocalFileClose(this.repoEditor.getRelativePath(textDocument.uri.fsPath));
+        await this.repoEditor.updateCursorDecorators();
       };
 
       // 文件内容变化事件

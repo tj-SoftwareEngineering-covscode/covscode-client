@@ -273,11 +273,11 @@ export class WorkspaceWatcher{
       };
 
       // 文本编辑器选择变化事件
-      private onChangeSeletion = ({ textEditor, selections }: TextEditorSelectionChangeEvent) => {
+      private onChangeSeletion = async ({ textEditor, selections }: TextEditorSelectionChangeEvent) => {
         if (textEditor.document.uri.scheme !== "file") {
           return;
         }
-        this.clientRepo.onLocalCursorMove(
+        await this.clientRepo.onLocalCursorMove(
           this.repoEditor.getRelativePath(textEditor.document.uri.fsPath),
           textEditor.document.fileName,
           textEditor.document.offsetAt(selections[0].active)
@@ -285,8 +285,8 @@ export class WorkspaceWatcher{
       };
 
       // 可见文本编辑器变化事件
-      private onChangeVisibleTextEditors = () => {
-        this.repoEditor.updateCursorDecorators();
+      private onChangeVisibleTextEditors = async () => {
+        await this.repoEditor.updateCursorDecorators();
       };
 
       // 设置监听器

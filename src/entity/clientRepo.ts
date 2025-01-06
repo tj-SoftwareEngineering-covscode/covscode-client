@@ -77,6 +77,10 @@ export class ClientRepo{
         return this.websocketConnection;
     }
 
+    public getFileMap(){
+        return this.fileMap;
+    }
+
     private setWebsocketListeners(){
         this.websocketConnection.on('message', this.onMessage);
         this.websocketConnection.on('error', this.onError);
@@ -380,12 +384,7 @@ export class ClientRepo{
         if(targetFile){
             let doc=DocManager.getDoc(targetFile!);
             if(doc){
-                //删除/清空doc
-                let setVersion = () => {
-                    targetFile.setVersionMap(doc?.version!, true);
-                };
-                let op={ p: ['content', 0], sd: doc.data.content };
-                doc.submitOp(op,undefined,setVersion);
+             
                 DocManager.removeDoc(targetFile);
                 console.log('成功1')
             }

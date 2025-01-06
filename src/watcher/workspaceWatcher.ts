@@ -21,6 +21,7 @@ import { Disposable,
 import { basename } from 'path';
 import { Mutex } from 'async-mutex';
 import * as path from 'path';
+import { DocManager } from '../manager/docManager';
 
 export class WorkspaceWatcher{
       private clientRepo: ClientRepo;
@@ -94,6 +95,27 @@ export class WorkspaceWatcher{
                 files.sort((a, b) => b.length - a.length);
                 // 保存到专门的 Map 中
                 this.folderFilesMap.set(fileOrDir.fsPath, files);
+
+                if (files) {
+                  for (const filePath of files) {
+                    //删除/清空doc
+                    const path = this.repoEditor.getRelativePath(filePath);
+                    let targetFile = this.clientRepo.getFileMap().get(path); 
+                    console.log(targetFile===undefined||targetFile===null);
+                    if(targetFile){
+                      console.log(222);
+                      let doc=DocManager.getDoc(targetFile!);
+                      if(doc){
+                        console.log(doc.data.content);
+                        let setVersion = () => {
+                          targetFile.setVersionMap(doc?.version!, true);
+                        };
+                        let op={ p: ['content', 0], sd: doc.data.content };
+                        doc.submitOp(op,undefined,setVersion);
+                      }   
+                    } 
+                  }
+                }
             }
         } catch (err) {
             console.error('处理删除操作错误:', err);
@@ -116,14 +138,7 @@ export class WorkspaceWatcher{
                         const relPath = this.repoEditor.getRelativePath(filePath);
                         console.log('删除文件:', relPath);
                         
-                        let fileDeleteAction = new NodeDeleteAction(
-                            this.clientRepo.getUser(),
-                            relPath,
-                            basename(filePath),
-                            true  // 这些都是文件
-                        );
-                        let websocketConnection = this.clientRepo.getWebsocketConnection();
-                        websocketConnection.sendData(fileDeleteAction);
+                        await this.clientRepo.onLocalNodeDelete(relPath, basename(relPath), true);
                     }
                     // 删除文件列表
                     this.folderFilesMap.delete(fileOrDir.fsPath);
@@ -142,14 +157,7 @@ export class WorkspaceWatcher{
   
             } else {
                 // 如果是单个文件，直接发送删除动作
-                let nodeDeleteAction = new NodeDeleteAction(
-                    this.clientRepo.getUser(),
-                    relativePath,
-                    fileName,
-                    true
-                );
-                let websocketConnection = this.clientRepo.getWebsocketConnection();
-                websocketConnection.sendData(nodeDeleteAction);
+                await this.clientRepo.onLocalNodeDelete(relativePath, fileName,true);
             }
         });
 

@@ -154,14 +154,18 @@ class Extension extends vscode.Disposable{
     // 检查工作区根目录是否符合要求
 	private async checkWorkSpaceRoot(userInput:UserInput)
 	{
-		console.log("in")
-		if(userInput.option === StartOption.Create
-			&& vscode.workspace.workspaceFolders?.length !== 1 
-		)
+		if(userInput.option === StartOption.Create)
 		{
-			console.log(userInput)
-			vscode.window.showErrorMessage('创建仓库时，工作区只能有一个文件夹')
-			return false
+			if(vscode.workspace.workspaceFolders?.length !== 1 )
+			{
+				vscode.window.showErrorMessage('创建仓库时，工作区只能有一个文件夹')
+				return false
+			}
+			if((await fsUtils.isDirEmpty(vscode.workspace.workspaceFolders[0]!.uri.fsPath)))
+			{
+				vscode.window.showErrorMessage("当前文件夹为空，请先为其创建文件")
+				return false
+			}
 		}
 		if(userInput.option === StartOption.Join)
 		{

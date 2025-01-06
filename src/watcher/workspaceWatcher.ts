@@ -15,15 +15,21 @@ import { Disposable,
         window, 
         workspace, 
         TabInputText,
+        RelativePattern,
+        FileType,
 } from "vscode";
 import { basename } from 'path';
 import { Mutex } from 'async-mutex';
+import * as path from 'path';
 
 export class WorkspaceWatcher{
       private clientRepo: ClientRepo;
       private repoEditor: RepoEditor;
       private listeners: Disposable[] = [];
-      private isFileMap: Map<string, boolean> = new Map(); 
+      // 存储路径是否为文件的标志
+      private isFileMap: Map<string, boolean> = new Map();
+      // 存储文件夹包含的文件列表
+      private folderFilesMap: Map<string, string[]> = new Map();
       private mutex = new Mutex();
 
       constructor(clientRepo: ClientRepo, repoEditor: RepoEditor){
@@ -58,46 +64,123 @@ export class WorkspaceWatcher{
       };
 
 
-      // 设置文件或文件夹是否为文件
-      private async setIsDir(path: string) {
-        const stats = await workspace.fs.stat(Uri.file(path));
-        const isFile = stats.type === 1;  // 1 表示文件
-        this.isFileMap.set(path, isFile);
-      }
+      // // 设置文件或文件夹是否为文件
+      // private async setIsDir(path: string) {
+      //   const stats = await workspace.fs.stat(Uri.file(path));
+      //   const isFile = stats.type === 1;  // 1 表示文件
+      //   this.isFileMap.set(path, isFile);
+      // }
 
 
       // 处理文件或文件夹即将删除事件
       private onWillDeleteNode = (event: FileWillDeleteEvent) => {
         const fileOrDir = event.files[0];
-        event.waitUntil(this.setIsDir(fileOrDir.fsPath));
+        event.waitUntil(this.handleNodeDelete(fileOrDir));
       };
 
-     
+      // 处理节点删除的具体逻辑
+      private async handleNodeDelete(fileOrDir: Uri) {
+        try {
+            // 判断是文件还是文件夹并保存状态
+            const stats = await workspace.fs.stat(fileOrDir);
+            const isFile = stats.type === FileType.File;
+            this.isFileMap.set(fileOrDir.fsPath, isFile);
+
+            if (!isFile) {
+                // 如果是文件夹，收集其中的所有文件路径
+                const files: string[] = [];
+                await this.getAllFiles(fileOrDir.fsPath, files);
+                // 按照路径长度排序，确保先删除深层文件
+                files.sort((a, b) => b.length - a.length);
+                // 保存到专门的 Map 中
+                this.folderFilesMap.set(fileOrDir.fsPath, files);
+            }
+        } catch (err) {
+            console.error('处理删除操作错误:', err);
+        }
+      };
+
       // 文件或文件夹删除事件
       private onNodeDelete = async({files}: FileDeleteEvent) => {
         const fileOrDir = files[0];
-        // 获取相对路径
         const relativePath = this.repoEditor.getRelativePath(fileOrDir.fsPath);
-        // 获取文件名
         const fileName = basename(fileOrDir.fsPath);
-        // 判断是文件还是文件夹
-        const isFile = this.isFileMap.get(fileOrDir.fsPath) ;
-        // 从Map中删除记录
-        this.isFileMap.delete(fileOrDir.fsPath);
-        console.log('删除......');
+        const isFile = this.isFileMap.get(fileOrDir.fsPath);
+
         await this.mutex.runExclusive(async() => {
-          // 删除动作
-          let nodeDeleteAction = new NodeDeleteAction(
-              this.clientRepo.getUser(),
-              relativePath,
-              fileName,
-              isFile
-          );
-          let websocketConnection = this.clientRepo.getWebsocketConnection();
-          websocketConnection.sendData(nodeDeleteAction);
+            if (!isFile) {
+                // 从专门的 Map 中获取文件列表
+                const folderFiles = this.folderFilesMap.get(fileOrDir.fsPath);
+                if (folderFiles) {
+                    for (const filePath of folderFiles) {
+                        const relPath = this.repoEditor.getRelativePath(filePath);
+                        console.log('删除文件:', relPath);
+                        
+                        let fileDeleteAction = new NodeDeleteAction(
+                            this.clientRepo.getUser(),
+                            relPath,
+                            basename(filePath),
+                            true  // 这些都是文件
+                        );
+                        let websocketConnection = this.clientRepo.getWebsocketConnection();
+                        websocketConnection.sendData(fileDeleteAction);
+                    }
+                    // 删除文件列表
+                    this.folderFilesMap.delete(fileOrDir.fsPath);
+                }
+                 // 最后发送文件夹的删除动作
+
+                 let folderDeleteAction = new NodeDeleteAction(
+                  this.clientRepo.getUser(),
+                  relativePath,
+                  fileName,
+                  false  // 这是文件夹
+
+              );
+              let websocketConnection = this.clientRepo.getWebsocketConnection();
+              websocketConnection.sendData(folderDeleteAction);
+  
+            } else {
+                // 如果是单个文件，直接发送删除动作
+                let nodeDeleteAction = new NodeDeleteAction(
+                    this.clientRepo.getUser(),
+                    relativePath,
+                    fileName,
+                    true
+                );
+                let websocketConnection = this.clientRepo.getWebsocketConnection();
+                websocketConnection.sendData(nodeDeleteAction);
+            }
         });
+
+        // 清理 isFileMap
+        this.isFileMap.delete(fileOrDir.fsPath);
       };
       
+      // 递归获取文件夹下所有文件的路径
+      private async getAllFiles(dirPath: string, files: string[]) {
+        try {
+            const dirUri = Uri.file(dirPath);
+            const entries = await workspace.fs.readDirectory(dirUri);
+            
+            for (const [name, type] of entries) {
+                const fullPath = path.join(dirPath, name);
+                console.log('处理路径:', fullPath, 'type:', type);  // 调试日志
+                
+                if (type === FileType.File) {
+                    files.push(fullPath);
+                } else if (type === FileType.Directory) {
+                    try {
+                        await this.getAllFiles(fullPath, files);
+                    } catch (err) {
+                        console.error('递归处理子目录错误:', err);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('读取目录错误:', err, '路径:', dirPath);
+        }
+      }
 
       // 文件或文件夹重命名事件
       private onNodeRename = async({ files }: FileRenameEvent) => {

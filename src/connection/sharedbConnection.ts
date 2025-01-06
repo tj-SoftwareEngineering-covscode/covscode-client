@@ -81,9 +81,7 @@ export class SharedbConnection extends EventEmitter{
         });
 
         doc.on("op batch", async (op, source) => {
-            if (source == clientFile.getClientRepo().getUserId()) {
-                console.log("收到op", op);
-                console.log("doc 内容为", doc.data.content);
+            if (source === clientFile.getClientRepo().getUserId()) {
                 const newContent = doc.data.content;
                 DocManager.setLastVersion(doc);
                 if (newContent !== clientFile.getFileContent()) {

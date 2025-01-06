@@ -84,7 +84,7 @@ export class WorkspaceWatcher{
         try {
             // 判断是文件还是文件夹并保存状态
             const stats = await workspace.fs.stat(fileOrDir);
-            const isFile = stats.type === FileType.File;
+            const isFile = stats.type === 1;
             this.isFileMap.set(fileOrDir.fsPath, isFile);
 
             if (!isFile) {
@@ -101,9 +101,7 @@ export class WorkspaceWatcher{
                     //删除/清空doc
                     const path = this.repoEditor.getRelativePath(filePath);
                     let targetFile = this.clientRepo.getFileMap().get(path); 
-                    console.log(targetFile===undefined||targetFile===null);
                     if(targetFile){
-                      console.log(222);
                       let doc=DocManager.getDoc(targetFile!);
                       if(doc){
                         console.log(doc.data.content);
@@ -116,6 +114,22 @@ export class WorkspaceWatcher{
                     } 
                   }
                 }
+            }
+            else if(isFile){
+              const path = this.repoEditor.getRelativePath(fileOrDir.fsPath);
+              console.log(path);
+                let targetFile = this.clientRepo.getFileMap().get(path); 
+                if(targetFile){
+                  let doc=DocManager.getDoc(targetFile!);
+                  if(doc){
+                    console.log(doc.data.content);
+                    let setVersion = () => {
+                      targetFile.setVersionMap(doc?.version!, true);
+                    };
+                    let op={ p: ['content', 0], sd: doc.data.content };
+                    doc.submitOp(op,undefined,setVersion);
+                  }   
+              } 
             }
         } catch (err) {
             console.error('处理删除操作错误:', err);

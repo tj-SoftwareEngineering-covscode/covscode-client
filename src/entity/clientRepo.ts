@@ -309,7 +309,7 @@ export class ClientRepo{
                 targetFile.resetFileEditor(new FileEditor(this.repoEditor, true, textDocument));
 
                 let doc=DocManager.getDoc(targetFile);
-                if(doc===null){
+                if(doc===null||doc===undefined){
                     let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
                     doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                     DocManager.addDoc(targetFile, doc);

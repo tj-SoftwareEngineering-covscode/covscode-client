@@ -176,7 +176,7 @@ export class ClientRepo{
                 this.onSiteIdMessage(message as SiteIdMessage);
             }
             else{
-                this.onWebSocketMessage(message as WebSocketMessage);
+                await this.onWebSocketMessage(message as WebSocketMessage);
             }
         })
     }
@@ -230,7 +230,7 @@ export class ClientRepo{
                 this.onFileCloseAction(websocketMessage.data as FileCloseAction);
                 break;
             case ActionType.FileOpenAction:
-                this.onFileOpenAction(websocketMessage.data as FileOpenAction);
+                await this.onFileOpenAction(websocketMessage.data as FileOpenAction);
                 break;
             default:
                 break;
@@ -280,7 +280,7 @@ export class ClientRepo{
         this.repoEditor.fileClose(fileCloseAction.path!, fileCloseAction.clientUser!);
     }
 
-    private onFileOpenAction(fileOpenAction:FileOpenAction){
+    private async onFileOpenAction(fileOpenAction:FileOpenAction){
         let targetFile = this.fileMap.get(fileOpenAction.path!);
         if (targetFile) {
             targetFile.addOpenUser(fileOpenAction.clientUser!);
@@ -292,7 +292,7 @@ export class ClientRepo{
             let doc;
             doc = DocManager.getDoc(targetFile);
             if (doc === null || doc === undefined) {
-                doc = this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
+                doc = await this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                 DocManager.addDoc(targetFile, doc);
             }
             targetFile.setVersion(doc!.version!);
@@ -311,7 +311,7 @@ export class ClientRepo{
                 let doc=DocManager.getDoc(targetFile);
                 if(doc===null||doc===undefined){
                     let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
-                    doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
+                    doc=await this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                     DocManager.addDoc(targetFile, doc);
                 }
                 targetFile.setVersion(doc!.version!);
@@ -323,7 +323,7 @@ export class ClientRepo{
                 let doc=DocManager.getDoc(targetFile);
                 if(doc===null||doc===undefined){
                     let fileOpenAction=new FileOpenAction(this.user, targetFile.getRelativePath(), targetFile.getFileName());
-                    doc=this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
+                    doc=await this.sharedbConnection.createFileDoc(targetFile, fileOpenAction);
                     DocManager.addDoc(targetFile, doc);
                 }
                 targetFile.setVersion(doc!.version!);

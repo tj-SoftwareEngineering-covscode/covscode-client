@@ -52,7 +52,7 @@ export class SharedbConnection extends EventEmitter{
         await this.connectingPromise;
     }
 
-    public createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
+    public async createFileDoc(clientFile:ClientFile, fileOpenAction:FileOpenAction){
         let doc = this.sharedb.get(clientFile.getClientRepo().getRepoId()!, fileOpenAction.path!);
         doc.fetch((err) => {
             if (err) {

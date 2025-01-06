@@ -242,7 +242,7 @@ export class ClientRepo{
 
     private onSessionLeaveAction(sessionLeaveAction:SessionLeaveAction){
         const targetUserIndex = this.users.findIndex(
-            (user) => user.getSiteId() === sessionLeaveAction.clientUser?.siteId
+            (user) => user.siteId === sessionLeaveAction.clientUser?.siteId
         );
         this.users.splice(targetUserIndex, 1);
         this.repoEditor.userLeave(sessionLeaveAction.clientUser!, this.users);
@@ -253,6 +253,14 @@ export class ClientRepo{
     }
 
     private async onNodeDeleteAction(nodeDeleteAction:NodeDeleteAction){
+        let targetFile = this.fileMap.get(nodeDeleteAction.path!);
+        if(targetFile){
+            let doc=DocManager.getDoc(targetFile!);
+            if(doc){
+                DocManager.removeDoc(targetFile);
+            }
+            this.fileMap.delete(nodeDeleteAction.path!);
+        }
         await this.repoEditor.nodeDelete(nodeDeleteAction.path!, nodeDeleteAction.clientUser!, nodeDeleteAction.isFile!);
     }
 
@@ -365,5 +373,33 @@ export class ClientRepo{
         await doc?.submitOp(op);
         this.repoEditor.localMoveCursor(insertData);
         this.repoEditor.updateCursorDecorators();
+    }
+
+    public async onLocalNodeDelete(path:string, fileName:string, isFile:boolean){
+        let targetFile = this.fileMap.get(path);
+        if(targetFile){
+            let doc=DocManager.getDoc(targetFile!);
+            if(doc){
+                //删除/清空doc
+                let setVersion = () => {
+                    targetFile.setVersionMap(doc?.version!, true);
+                };
+                let op={ p: ['content', 0], sd: doc.data.content };
+                doc.submitOp(op,undefined,setVersion);
+                DocManager.removeDoc(targetFile);
+                console.log('成功1')
+            }
+            this.fileMap.delete(path);
+        }
+        console.log('成功2')
+        await this.mutex.runExclusive(async () =>{
+            let nodeDeleteAction = new NodeDeleteAction(
+                this.user,
+                path,
+                fileName,
+                isFile
+            );
+            await this.websocketConnection.sendData(nodeDeleteAction);
+        });
     }
 } 

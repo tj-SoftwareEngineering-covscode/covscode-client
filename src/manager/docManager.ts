@@ -22,6 +22,11 @@ export class DocManager{
         this.docMap.set(docId!, doc);
     }
 
+    public static removeDoc(clientFile: ClientFile){
+        const docId = clientFile.getClientRepo().getRepoId()! + clientFile.getRelativePath()!;
+        this.docMap.delete(docId);
+    }
+
     public static getRepoDoc(clientRepo:ClientRepo){
         const key = clientRepo.getRepoId()! + "cursor";
         return this.docMap.get(key);

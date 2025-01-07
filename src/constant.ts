@@ -47,4 +47,4 @@ export const DECORATION_STYLE = {
 // 状态栏图标
 export const STATUS_BAR_ICON = 'outline-view-icon';
 // 状态栏文本
-export const STATUS_BAR_TEXT = 'Co-VsCode';
+export const STATUS_BAR_TEXT = '协同编程';
